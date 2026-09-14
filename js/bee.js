@@ -11,10 +11,6 @@
   const QUEEN = 9;
   const MIN_LEN = 4;
   const MAX_ENTRY = 19;
-  const LANG_RULES = {
-    hu: "Csak szótári alakok számítanak (ragozatlan szavak). Az ékezetes betű külön betű (a ≠ á).",
-    en: "Angol szavak. A feladványokban nincs S betű, így a többes számok kimaradnak.",
-  };
 
   const lang = WG.getLang();
   const $ = (id) => document.getElementById(id);
@@ -36,12 +32,11 @@
     const todayIndex = WG.mod(day, puzzles.length);
     const p = WG.params().get("p");
     index = p !== null && /^\d+$/.test(p) && Number(p) < puzzles.length ? Number(p) : todayIndex;
-    mode = index === todayIndex ? "daily" : "practice";
-    $("subtitle").textContent = lang.toUpperCase() + (mode === "daily" ? " · #" + (day + 1) : " · gyakorló " + (index + 1));
-    $("langRule").textContent = LANG_RULES[lang];
+    mode = index === todayIndex ? "daily" : "endless";
+    $("subtitle").textContent = lang.toUpperCase() + " · " + (mode === "daily" ? "#" + (day + 1) : "∞");
 
     puzzle = makePuzzle(index);
-    found = WG.store.get(stateKey(index), []).filter((w) => puzzle.answerSet.has(w));
+    found = WG.store.get(stateKey(), []).filter((w) => puzzle.answerSet.has(w));
 
     buildHive();
     render();
@@ -49,21 +44,16 @@
     $("deleteBtn").addEventListener("click", backspace);
     $("shuffleBtn").addEventListener("click", shuffle);
     $("enterBtn").addEventListener("click", submit);
-    document.querySelectorAll(".bee-controls button").forEach((b) => b.addEventListener("mousedown", (e) => e.preventDefault()));
+    document.querySelectorAll(".bee-controls button, .bee-actions button").forEach((b) => {
+      b.addEventListener("mousedown", (e) => e.preventDefault());
+    });
     $("rankBar").addEventListener("click", openRanks);
     $("shareBtn").addEventListener("click", () => WG.share(shareText()));
     $("ranksShare").addEventListener("click", () => WG.share(shareText()));
-    $("yesterdayBtn").addEventListener("click", () => showAnswers(WG.mod(day - 1, puzzles.length), "Tegnapi megoldások"));
-    $("randomBtn").addEventListener("click", randomPuzzle);
-    $("giveUpBtn").addEventListener("click", giveUp);
-    $("todayLink").href = WG.pageUrl("bee.html", { lang });
-    $("todayLink").hidden = mode === "daily";
+    $("newBtn").addEventListener("click", randomPuzzle);
+    $("answersNewBtn").addEventListener("click", randomPuzzle);
+    $("giveUpBtn").addEventListener("click", showAnswers);
     document.addEventListener("keydown", onKey);
-
-    if (!WG.store.get("bee:seenHelp", false)) {
-      WG.store.set("bee:seenHelp", true);
-      WG.openDialog("helpDlg");
-    }
   }
 
   function makePuzzle(i) {
@@ -81,8 +71,8 @@
     };
   }
 
-  function stateKey(i) {
-    return "bee:" + lang + ":p:" + i;
+  function stateKey() {
+    return "bee:" + lang + ":p:" + index;
   }
 
   function isPangram(w) {
@@ -179,8 +169,8 @@
   }
 
   function renderFound() {
-    $("foundCount").textContent = found.length ? found.length + " szó" : "";
-    $("foundRecent").textContent = found.length ? found.slice(-8).reverse().join(" · ") : "Még nincs találat…";
+    $("foundCount").textContent = found.length + " szó";
+    $("foundRecent").textContent = found.slice(-8).reverse().join(" · ");
     const list = $("foundList");
     list.innerHTML = "";
     [...found].sort(collator.compare).forEach((w) => {
@@ -246,7 +236,7 @@
     if (chars.length < MIN_LEN) message = "Túl rövid";
     else if (chars.some((ch) => !puzzle.letterSet.has(ch))) message = "Rossz betű";
     else if (!chars.includes(puzzle.center)) message = "Hiányzik a középső betű";
-    else if (found.includes(w)) message = "Már megtaláltad";
+    else if (found.includes(w)) message = "Már megvan";
     else if (!puzzle.answerSet.has(w)) message = "Nincs a listában";
 
     if (message) {
@@ -267,21 +257,13 @@
     const points = wordScore(w);
     found.push(w);
     entry = "";
-    save();
+    WG.store.set(stateKey(), found);
     render();
-    WG.toast(isPangram(w) ? "Pangram! +" + points + " 🎉" : (points === 1 ? "Jó!" : points < 7 ? "Szép!" : "Fantasztikus!") + " +" + points);
+    WG.toast(isPangram(w) ? "Pangram! +" + points : (points === 1 ? "Jó!" : points < 7 ? "Szép!" : "Fantasztikus!") + " +" + points);
 
     const after = rankIndex();
-    if (after === QUEEN) setTimeout(() => WG.toast("👑 Méhkirálynő! Minden szót megtaláltál!", 3500), 900);
-    else if (after > before) setTimeout(() => WG.toast("Új rang: " + RANKS[after][0] + "!", 2200), 900);
-  }
-
-  function save() {
-    WG.store.set(stateKey(index), found);
-    if (mode === "daily") {
-      const score = currentScore();
-      WG.store.set("bee:" + lang + ":d:" + day, { rank: RANKS[rankIndex(score)][0], score, words: found.length });
-    }
+    if (after === QUEEN) setTimeout(() => WG.toast("👑 Méhkirálynő!", 3000), 900);
+    else if (after > before) setTimeout(() => WG.toast(RANKS[after][0] + "!", 2000), 900);
   }
 
   /* ---------- Ablakok ---------- */
@@ -290,41 +272,37 @@
     const score = currentScore();
     const rank = rankIndex(score);
     const mins = thresholds();
-    $("ranksScore").textContent = "Pontszámod: " + score + " · " + found.length + " szó";
+    $("ranksScore").textContent = score + " pont · " + found.length + " szó";
     const body = $("ranksBody");
     body.innerHTML = "";
     for (let i = RANKS.length - 1; i >= 0; i--) {
       const tr = document.createElement("tr");
       if (i === rank) tr.className = "current";
       const name = document.createElement("td");
-      name.textContent = RANKS[i][0] + (i === QUEEN ? " 👑" : "");
+      name.textContent = RANKS[i][0];
       const pts = document.createElement("td");
-      pts.textContent = i === QUEEN ? "minden szó" : mins[i] + " pont";
+      pts.textContent = mins[i];
       tr.append(name, pts);
       body.appendChild(tr);
     }
     WG.openDialog("ranksDlg");
   }
 
-  function showAnswers(i, title) {
-    const pz = i === index ? puzzle : makePuzzle(i);
-    const got = new Set(i === index ? found : WG.store.get(stateKey(i), []));
-    $("answersTitle").textContent = title;
-
+  function showAnswers() {
     const letters = $("answersLetters");
     letters.innerHTML = "";
-    [pz.center, ...[...pz.outer].sort(collator.compare)].forEach((ch, k) => {
+    [puzzle.center, ...[...puzzle.outer].sort(collator.compare)].forEach((ch, k) => {
       const hex = document.createElement("span");
       hex.className = "mini-hex" + (k === 0 ? " center" : "");
       hex.textContent = ch;
       letters.appendChild(hex);
     });
 
-    const gotCount = pz.answers.filter((w) => got.has(w)).length;
-    $("answersSummary").textContent = gotCount + " / " + pz.answers.length + " szót találtál meg. A pangramok félkövérek.";
+    const got = new Set(found);
+    $("answersSummary").textContent = found.length + " / " + puzzle.answers.length;
     const list = $("answersList");
     list.innerHTML = "";
-    [...pz.answers].sort(collator.compare).forEach((w) => {
+    [...puzzle.answers].sort(collator.compare).forEach((w) => {
       const li = document.createElement("li");
       li.textContent = w;
       if (got.has(w)) li.classList.add("got");
@@ -332,11 +310,6 @@
       list.appendChild(li);
     });
     WG.openDialog("answersDlg");
-  }
-
-  function giveUp() {
-    if (!confirm("Biztosan megnézed az összes megoldást? Utána is folytathatod a játékot.")) return;
-    showAnswers(index, mode === "daily" ? "Mai megoldások" : "Megoldások");
   }
 
   function randomPuzzle() {
@@ -350,13 +323,10 @@
   function shareText() {
     const score = currentScore();
     const rank = rankIndex(score);
-    const L = lang.toUpperCase();
-    const title = mode === "daily" ? "🐝 Spelling Bee " + L + " #" + (day + 1) : "🐝 Spelling Bee " + L + " gyakorló " + (index + 1);
+    const label = mode === "daily" ? "#" + (day + 1) : "∞";
     const bar = RANKS.slice(0, GENIUS + 1).map((_, i) => (i <= rank ? "🟨" : "⬜")).join("");
-    const pangrams = found.filter(isPangram).length;
-    return title + "\n" +
-      RANKS[rank][0] + (rank === QUEEN ? " 👑" : "") + " — " + score + " pont, " + found.length + " szó" +
-      (pangrams ? ", " + pangrams + " pangram" : "") + "\n" + bar + "\n\n" +
-      "Játszd ugyanezt: " + WG.pageUrl("bee.html", { lang, p: index });
+    return "🐝 Spelling Bee " + lang.toUpperCase() + " " + label + "\n" +
+      RANKS[rank][0] + " — " + score + " pont, " + found.length + " szó\n" + bar + "\n\n" +
+      WG.pageUrl("bee.html", { lang, p: index });
   }
 })();

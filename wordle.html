@@ -3,8 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Wordle — Szójátékok</title>
-  <meta name="description" content="Napi Wordle magyarul és angolul — játssz a barátaiddal!">
+  <title>Wordle</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%236aaa64'/%3E%3Ctext x='50' y='71' font-size='62' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3EW%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -22,8 +21,11 @@
       <button class="icon-btn" type="button" id="statsBtn" aria-label="Statisztika" title="Statisztika">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 20v-8M12 20V4M19 20v-5"/></svg>
       </button>
-      <button class="icon-btn" type="button" data-open="challengeDlg" aria-label="Kihívás küldése" title="Kihívás küldése egy barátnak">
+      <button class="icon-btn" type="button" data-open="challengeDlg" aria-label="Kihívás" title="Kihívás">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M21 3 3 10.5l7 2.5 2.5 7L21 3Z"/><path d="m10 13 4.5-4.5"/></svg>
+      </button>
+      <button class="icon-btn" type="button" id="endlessBtn" aria-label="Új szó" title="Új szó">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.2 8.2c-2.3 0-3.9 2-6.2 3.8s-3.9 3.8-6.2 3.8a3.8 3.8 0 0 1 0-7.6c2.3 0 3.9 2 6.2 3.8s3.9 3.8 6.2 3.8a3.8 3.8 0 0 0 0-7.6Z"/></svg>
       </button>
     </header>
 
@@ -37,51 +39,42 @@
 
   <dialog id="helpDlg">
     <button class="icon-btn dlg-close" type="button" data-close aria-label="Bezárás">✕</button>
-    <h2>Hogyan kell játszani?</h2>
-    <p>Találd ki a rejtett <b>5 betűs</b> szót <b>6 tippből</b>. Minden tipp egy létező szó legyen. Tipp után a mezők színe megmutatja, mennyire jársz közel.</p>
+    <h2>Szabályok</h2>
+    <p class="center">5 betűs szó, 6 tipp.</p>
     <div id="examples"></div>
-    <p id="huNote" class="muted">Magyar módban minden karakter egy mező: az ékezetes betű külön betű (a ≠ á), a kétjegyű betűk (sz, gy, cs…) pedig két mezőt foglalnak.</p>
-    <h3>Barátokkal</h3>
-    <p>Mindenki ugyanazt a napi szót kapja. A végén oszd meg az eredményed — a megoldás nem látszik belőle. A papírrepülő gombbal saját szót is küldhetsz kihívásként.</p>
-    <div class="btn-row"><button class="btn primary" type="button" data-close>Játék!</button></div>
   </dialog>
 
   <dialog id="statsDlg">
     <button class="icon-btn dlg-close" type="button" data-close aria-label="Bezárás">✕</button>
     <h2 id="statsTitle">Statisztika</h2>
     <p id="resultWord" class="result-word" hidden></p>
-    <h3 id="statsHeading">Napi Wordle</h3>
-    <div class="stats-grid">
-      <div><div class="num" id="stPlayed">0</div><div class="lbl">Játszott</div></div>
-      <div><div class="num" id="stWin">0</div><div class="lbl">Nyert %</div></div>
-      <div><div class="num" id="stStreak">0</div><div class="lbl">Sorozat</div></div>
-      <div><div class="num" id="stMax">0</div><div class="lbl">Leghosszabb</div></div>
-    </div>
-    <h3>Tippek eloszlása</h3>
-    <div id="dist"></div>
-    <div id="nextBlock" hidden>
-      <h3>Következő szó</h3>
-      <div class="countdown" id="countdown">00:00:00</div>
+    <div id="statsBlock">
+      <h3 id="statsHeading">Napi</h3>
+      <div class="stats-grid">
+        <div><div class="num" id="stPlayed">0</div><div class="lbl">Játszott</div></div>
+        <div><div class="num" id="stWin">0</div><div class="lbl">Nyert %</div></div>
+        <div><div class="num" id="stStreak">0</div><div class="lbl">Sorozat</div></div>
+        <div><div class="num" id="stMax">0</div><div class="lbl">Legjobb</div></div>
+      </div>
+      <div id="dist" class="dist"></div>
     </div>
     <div class="btn-row">
-      <button class="btn primary" type="button" id="shareBtn" hidden>Megosztás</button>
-      <button class="btn" type="button" id="practiceBtn">Gyakorló szó</button>
-      <a class="btn" id="dailyLink" href="wordle.html" hidden>Napi Wordle</a>
+      <button class="btn primary" type="button" id="newBtn">Új szó</button>
+      <button class="btn" type="button" id="shareBtn" hidden>Megosztás</button>
     </div>
   </dialog>
 
   <dialog id="challengeDlg">
     <button class="icon-btn dlg-close" type="button" data-close aria-label="Bezárás">✕</button>
-    <h2>Kihívás küldése</h2>
-    <p>Írj be egy 5 betűs szót, és küldd el a linket egy barátodnak — neki ezt kell kitalálnia. A linkből nem látszik a szó.</p>
+    <h2>Kihívás</h2>
     <form id="challengeForm" autocomplete="off">
-      <input class="text-input" id="challengeInput" autocapitalize="off" spellcheck="false" maxlength="10" aria-label="Szó">
+      <input class="text-input" id="challengeInput" autocapitalize="off" spellcheck="false" maxlength="10" placeholder="5 betűs szó" aria-label="Szó">
       <p class="form-error" id="challengeError"></p>
       <div class="btn-row" style="margin-top:4px"><button class="btn primary" type="submit">Link készítése</button></div>
     </form>
     <div id="challengeResult" hidden>
       <div class="link-box">
-        <input class="text-input" id="challengeLink" readonly aria-label="Kihívás link">
+        <input class="text-input" id="challengeLink" readonly aria-label="Link">
         <button class="btn primary" type="button" id="challengeShare">Küldés</button>
       </div>
     </div>

@@ -55,6 +55,8 @@ button { font: inherit; color: inherit; }
 
 a { color: var(--accent); }
 
+[hidden] { display: none !important; }
+
 /* ---------- Top bar ---------- */
 
 .topbar {
@@ -124,7 +126,7 @@ a { color: var(--accent); }
   color: var(--bg);
 }
 
-/* ---------- Toasts ---------- */
+/* ---------- Üzenetek ---------- */
 
 #toasts {
   position: fixed;
@@ -162,7 +164,7 @@ a { color: var(--accent); }
 
 @keyframes toast-in { from { opacity: 0; transform: translateY(-6px); } }
 
-/* ---------- Dialogs ---------- */
+/* ---------- Ablakok ---------- */
 
 dialog {
   width: min(460px, calc(100vw - 24px));
@@ -179,7 +181,7 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.5); }
 
 dialog h2 { margin: 0 0 14px; font-size: 1.25rem; text-align: center; }
 
-dialog h3 { margin: 18px 0 8px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; text-align: center; }
+dialog h3 { margin: 16px 0 8px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; text-align: center; }
 
 dialog p, dialog li { line-height: 1.45; }
 
@@ -231,7 +233,7 @@ dialog p, dialog li { line-height: 1.45; }
 
 .center { text-align: center; }
 
-/* ---------- Hub ---------- */
+/* ---------- Főoldal ---------- */
 
 .hub {
   max-width: 720px;
@@ -239,19 +241,25 @@ dialog p, dialog li { line-height: 1.45; }
   padding: 36px 18px 48px;
 }
 
-.hub-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.hub-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
 
 .hub h1 { font-size: 2.2rem; margin: 0; font-weight: 900; }
-
-.hub .lead { color: var(--muted); margin: 6px 0 28px; }
 
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
 
 .card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 22px;
+  align-items: center;
+  gap: 14px;
+  padding: 36px 22px;
   border: 1px solid var(--border);
   border-radius: 14px;
   color: var(--text);
@@ -263,10 +271,6 @@ dialog p, dialog li { line-height: 1.45; }
 .card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
 
 .card h2 { margin: 0; font-size: 1.5rem; }
-
-.card p { margin: 0; color: var(--muted); line-height: 1.4; }
-
-.card .status { margin-top: auto; padding-top: 8px; font-weight: 700; font-size: 0.9rem; }
 
 .card-icon { display: flex; gap: 4px; }
 
@@ -293,12 +297,6 @@ dialog p, dialog li { line-height: 1.45; }
 }
 
 .mini-hex.center { background: var(--bee); color: #1a1a1b; }
-
-.friends { margin-top: 32px; padding: 18px 20px; border-radius: 14px; border: 1px dashed var(--border-strong); }
-
-.friends h2 { margin: 0 0 8px; font-size: 1.1rem; }
-
-.friends ul { margin: 0; padding-left: 20px; line-height: 1.6; }
 
 /* ---------- Wordle ---------- */
 
@@ -407,11 +405,17 @@ dialog p, dialog li { line-height: 1.45; }
 
 .key:active { filter: brightness(0.9); }
 
+#statsTitle { font-size: 1.6rem; letter-spacing: 0.1em; }
+
+.result-word { text-align: center; font-size: 1.1rem; font-weight: 700; margin: -6px 0 6px; }
+
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; gap: 6px; }
 
 .stats-grid .num { font-size: 2rem; font-weight: 700; line-height: 1.1; }
 
 .stats-grid .lbl { font-size: 0.72rem; color: var(--muted); }
+
+.dist { margin-top: 14px; }
 
 .dist-row { display: flex; align-items: center; gap: 6px; margin: 4px 0; font-size: 0.9rem; }
 
@@ -428,15 +432,11 @@ dialog p, dialog li { line-height: 1.45; }
 
 .dist-bar.hl { background: var(--correct); }
 
-.result-word { text-align: center; font-size: 1.05rem; margin: 0 0 6px; }
-
-.result-word b { letter-spacing: 0.12em; text-transform: uppercase; }
-
-.countdown { font-size: 1.6rem; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
-
-.example { display: flex; gap: 4px; margin: 8px 0 4px; }
+.example { display: flex; align-items: center; gap: 4px; margin: 10px 0; }
 
 .example .tile { width: 36px; height: 36px; font-size: 1.1rem; }
+
+.example span { margin-left: 10px; }
 
 .link-box { display: flex; gap: 8px; margin-top: 10px; }
 
@@ -501,7 +501,7 @@ dialog p, dialog li { line-height: 1.45; }
 
 .found summary .recent { color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
 
-.found summary .chev { transition: transform 0.2s; }
+.found summary .chev { display: inline-block; transition: transform 0.2s; }
 
 .found[open] summary .chev { transform: rotate(180deg); }
 
@@ -558,7 +558,7 @@ dialog p, dialog li { line-height: 1.45; }
   cursor: pointer;
   color: var(--text);
   touch-action: manipulation;
-  transition: transform 0.08s;
+  transition: transform 0.08s, opacity 0.15s;
 }
 
 .cell:active { transform: scale(0.92); }
@@ -571,7 +571,7 @@ dialog p, dialog li { line-height: 1.45; }
 .cell[data-pos="4"] { left: 0; top: 50%; }
 .cell[data-pos="5"] { left: 0; top: 16.667%; }
 
-.hive.shuffling .cell:not(.center) { opacity: 0; transition: opacity 0.15s; }
+.hive.shuffling .cell:not(.center) { opacity: 0; }
 
 .bee-controls { display: flex; justify-content: center; gap: 12px; margin: 22px 0 10px; }
 
@@ -580,9 +580,7 @@ dialog p, dialog li { line-height: 1.45; }
 .round-btn { width: 50px; min-width: 50px !important; padding: 0; }
 .round-btn svg { width: 22px; height: 22px; }
 
-.bee-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px; margin-top: 22px; font-size: 0.92rem; }
-
-.bee-links button { background: none; border: 0; color: var(--accent); cursor: pointer; padding: 4px; text-decoration: underline; }
+.bee-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 18px; }
 
 .rank-table { width: 100%; border-collapse: collapse; }
 
@@ -599,10 +597,6 @@ dialog p, dialog li { line-height: 1.45; }
 .answers li.got { color: var(--text); }
 
 .answers li.got::before { content: "✓ "; color: var(--correct); }
-
-.cell { transition: transform 0.08s, opacity 0.15s; }
-
-[hidden] { display: none !important; }
 
 @media (max-height: 700px) {
   .key { height: 48px; }

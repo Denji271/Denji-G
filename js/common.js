@@ -49,17 +49,6 @@
     return ((n % m) + m) % m;
   }
 
-  function msToMidnight() {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1) - now;
-  }
-
-  function formatCountdown(ms) {
-    const s = Math.max(0, Math.floor(ms / 1000));
-    const pad = (n) => String(n).padStart(2, "0");
-    return pad(Math.floor(s / 3600)) + ":" + pad(Math.floor(s / 60) % 60) + ":" + pad(s % 60);
-  }
-
   // A szólisták <script>-ként töltődnek be, így a játék file:// alól is fut.
   function loadData(lang) {
     window.WORDGAME_DATA = window.WORDGAME_DATA || {};
@@ -219,8 +208,6 @@
     getLang,
     dayNumber,
     mod,
-    msToMidnight,
-    formatCountdown,
     loadData,
     splitWords,
     normalizeLetter,
