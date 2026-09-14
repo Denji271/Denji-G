@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Szójátékok — Wordle és Spelling Bee</title>
+  <meta name="description" content="Napi Wordle és Spelling Bee magyarul és angolul — játssz a barátaiddal!">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%236aaa64'/%3E%3Ctext x='50' y='71' font-size='62' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3EW%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="hub">
+    <div class="hub-head">
+      <h1>Szójátékok</h1>
+      <div class="lang-switch"></div>
+    </div>
+    <p class="lead">Minden nap új feladvány, mindenkinek ugyanaz. A szavak nyelve most: <b id="langName">magyar</b>.</p>
+
+    <div class="cards">
+      <a class="card" href="wordle.html">
+        <div class="card-icon" aria-hidden="true">
+          <span class="mini-tile" style="background:var(--correct)">W</span>
+          <span class="mini-tile" style="background:var(--absent)">O</span>
+          <span class="mini-tile" style="background:var(--present)">R</span>
+          <span class="mini-tile" style="background:var(--correct)">D</span>
+          <span class="mini-tile" style="background:var(--absent)">L</span>
+        </div>
+        <h2>Wordle</h2>
+        <p>Találd ki az 5 betűs szót 6 tippből. A színek megmutatják, mennyire jársz közel.</p>
+        <div class="status" id="wordleStatus"></div>
+      </a>
+
+      <a class="card" href="bee.html">
+        <div class="card-icon" aria-hidden="true">
+          <span class="mini-hex">B</span>
+          <span class="mini-hex center">E</span>
+          <span class="mini-hex">E</span>
+        </div>
+        <h2>Spelling Bee</h2>
+        <p>Rakj ki minél több szót 7 betűből. Eljutsz a Zseni rangig?</p>
+        <div class="status" id="beeStatus"></div>
+      </a>
+    </div>
+
+    <section class="friends">
+      <h2>Játék a barátokkal</h2>
+      <ul>
+        <li>Mindenki ugyanazt a napi feladványt kapja — a nyelvet jobb fent váltod.</li>
+        <li>Ha végeztél, a <b>Megosztás</b> gombbal küldd el az eredményed. A megoldást nem árulja el.</li>
+        <li>Wordle-ben a papírrepülő gombbal saját szót küldhetsz kihívásként.</li>
+        <li>Spelling Bee-ben a véletlen feladványok linkje is megosztható: versenyezzetek a pontokért!</li>
+      </ul>
+    </section>
+  </main>
+
+  <script src="js/common.js"></script>
+  <script>
+    (function () {
+      const lang = WG.getLang();
+      const day = WG.dayNumber();
+      WG.setupLangSwitch(lang);
+      document.getElementById("langName").textContent = lang === "hu" ? "magyar" : "angol";
+
+      const w = WG.store.get("wordle:" + lang + ":d:" + day, null);
+      const stats = WG.store.get("wordle:" + lang + ":stats", null);
+      let text;
+      if (w && w.done) text = "Mai #" + (day + 1) + ": " + (w.won ? w.guesses.length : "X") + "/6 " + (w.won ? "✅" : "❌");
+      else if (w && w.guesses && w.guesses.length) text = "A mai játék folyamatban…";
+      else text = "▶ A mai szó még rád vár";
+      if (stats && stats.lastWinDay !== null && stats.lastWinDay >= day - 1 && stats.streak > 1) {
+        text += " · 🔥 " + stats.streak + " napos sorozat";
+      }
+      document.getElementById("wordleStatus").textContent = text;
+
+      const b = WG.store.get("bee:" + lang + ":d:" + day, null);
+      document.getElementById("beeStatus").textContent = b
+        ? "Mai rang: " + b.rank + " · " + b.score + " pont · " + b.words + " szó"
+        : "▶ A mai feladvány még rád vár";
+    })();
+  </script>
+</body>
+</html>
