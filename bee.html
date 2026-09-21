@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="hu">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -9,22 +9,21 @@
 </head>
 <body>
   <header class="topbar">
-    <a class="icon-btn" href="index.html" aria-label="Főoldal" title="Főoldal">
+    <a class="icon-btn" href="index.html" aria-label="Home" title="Home">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
     </a>
     <h1>Spelling Bee<small id="subtitle"></small></h1>
-    <div class="lang-switch"></div>
-    <button class="icon-btn" type="button" data-open="helpDlg" aria-label="Szabályok" title="Szabályok">
+    <button class="icon-btn" type="button" data-open="helpDlg" aria-label="How to play" title="How to play">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.2 9.2a2.9 2.9 0 1 1 4.1 2.6c-.9.4-1.3 1-1.3 2v.4"/><circle cx="12" cy="17.4" r=".7" fill="currentColor"/></svg>
     </button>
-    <button class="icon-btn" type="button" id="shareBtn" aria-label="Megosztás" title="Megosztás">
+    <button class="icon-btn" type="button" id="shareBtn" aria-label="Share" title="Share">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 13v7h14v-7"/></svg>
     </button>
   </header>
 
   <main class="bee-main">
-    <button class="rank-bar" id="rankBar" type="button" aria-label="Rangok">
-      <span class="rank-name" id="rankName">Kezdő</span>
+    <button class="rank-bar" id="rankBar" type="button" aria-label="Ranks">
+      <span class="rank-name" id="rankName">Beginner</span>
       <span class="rank-track" id="rankTrack"></span>
     </button>
 
@@ -40,45 +39,45 @@
     <div class="hive" id="hive"></div>
 
     <div class="bee-controls">
-      <button class="btn" type="button" id="deleteBtn">Törlés</button>
-      <button class="btn round-btn" type="button" id="shuffleBtn" aria-label="Keverés" title="Keverés">
+      <button class="btn" type="button" id="deleteBtn">Delete</button>
+      <button class="btn round-btn" type="button" id="shuffleBtn" aria-label="Shuffle" title="Shuffle">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></svg>
       </button>
-      <button class="btn" type="button" id="enterBtn">Beküld</button>
+      <button class="btn" type="button" id="enterBtn">Enter</button>
     </div>
 
     <div class="bee-actions">
-      <button class="btn bee" type="button" id="newBtn">Új feladvány</button>
-      <button class="btn" type="button" id="giveUpBtn">Megoldások</button>
+      <button class="btn bee" type="button" id="newBtn">New puzzle</button>
+      <button class="btn" type="button" id="giveUpBtn">Answers</button>
     </div>
   </main>
 
   <div id="toasts" aria-live="polite"></div>
 
   <dialog id="helpDlg">
-    <button class="icon-btn dlg-close" type="button" data-close aria-label="Bezárás">✕</button>
-    <h2>Szabályok</h2>
+    <button class="icon-btn dlg-close" type="button" data-close aria-label="Close">✕</button>
+    <h2>How to play</h2>
     <ul>
-      <li>Legalább 4 betűs szavak, a középső betű mindig kell.</li>
-      <li>4 betű: 1 pont. Hosszabb: annyi pont, ahány betű. Mind a 7 betű: +7.</li>
+      <li>Words must be at least four letters long and always include the centre letter.</li>
+      <li>Four letters score 1 point. Longer words score one point per letter, and using all seven letters adds 7.</li>
     </ul>
   </dialog>
 
   <dialog id="ranksDlg">
-    <button class="icon-btn dlg-close" type="button" data-close aria-label="Bezárás">✕</button>
-    <h2>Rangok</h2>
+    <button class="icon-btn dlg-close" type="button" data-close aria-label="Close">✕</button>
+    <h2>Ranks</h2>
     <p class="center" id="ranksScore"></p>
     <table class="rank-table"><tbody id="ranksBody"></tbody></table>
-    <div class="btn-row"><button class="btn bee" type="button" id="ranksShare">Megosztás</button></div>
+    <div class="btn-row"><button class="btn bee" type="button" id="ranksShare">Share</button></div>
   </dialog>
 
   <dialog id="answersDlg">
-    <button class="icon-btn dlg-close" type="button" data-close aria-label="Bezárás">✕</button>
-    <h2>Megoldások</h2>
+    <button class="icon-btn dlg-close" type="button" data-close aria-label="Close">✕</button>
+    <h2>Answers</h2>
     <div class="card-icon" id="answersLetters" style="justify-content:center"></div>
     <p class="center muted" id="answersSummary"></p>
     <ul class="answers" id="answersList"></ul>
-    <div class="btn-row"><button class="btn bee" type="button" id="answersNewBtn">Új feladvány</button></div>
+    <div class="btn-row"><button class="btn bee" type="button" id="answersNewBtn">New puzzle</button></div>
   </dialog>
 
   <script src="js/common.js"></script>

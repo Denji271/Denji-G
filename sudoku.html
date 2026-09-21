@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Sudoku</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23787c7e'/%3E%3Ctext x='50' y='72' font-size='62' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3E9%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/games.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="icon-btn" href="index.html" aria-label="Home" title="Home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+    </a>
+    <h1>Sudoku<small id="subtitle"></small></h1>
+    <button class="icon-btn" type="button" data-open="helpDlg" aria-label="How to play" title="How to play"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.2 9.2a2.9 2.9 0 1 1 4.1 2.6c-.9.4-1.3 1-1.3 2v.4"/><circle cx="12" cy="17.4" r=".7" fill="currentColor"/></svg></button>
+    <button class="icon-btn" type="button" id="statsBtn" aria-label="Statistics" title="Statistics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 20v-8M12 20V4M19 20v-5"/></svg></button>
+    <button class="icon-btn" type="button" id="newBtn" aria-label="New puzzle" title="New puzzle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.2 8.2c-2.3 0-3.9 2-6.2 3.8s-3.9 3.8-6.2 3.8a3.8 3.8 0 0 1 0-7.6c2.3 0 3.9 2 6.2 3.8s3.9 3.8 6.2 3.8a3.8 3.8 0 0 0 0-7.6Z"/></svg></button>
+  </header>
+
+  <main class="game-main">
+    <div class="game-bar">
+      <span>Level: <b id="levelName">Medium</b></span>
+      <span>Empty: <b id="emptyCount">0</b></span>
+      <span>Time: <b id="clock">0:00</b></span>
+    </div>
+
+    <div class="sudoku" id="grid" role="grid" aria-label="Sudoku grid"></div>
+
+    <div class="sudoku-pad" id="pad" aria-label="Numbers"></div>
+
+    <div class="game-actions">
+      <button class="btn" type="button" id="noteBtn">Notes: off</button>
+      <button class="btn" type="button" id="eraseBtn">Erase</button>
+      <button class="btn" type="button" id="checkBtn">Check</button>
+    </div>
+
+    <div class="level-row" id="levels"></div>
+  </main>
+
+  <div id="toasts" aria-live="polite"></div>
+
+  <dialog id="helpDlg">
+    <button class="icon-btn dlg-close" type="button" data-close aria-label="Close">✕</button>
+    <h2>How to play</h2>
+    <ul class="dlg-list">
+      <li>Every row, every column and every three-by-three box must contain each digit from 1 to 9 exactly once.</li>
+      <li>Pick a square, then choose a number — or just type it.</li>
+      <li>Turn notes on to pencil in several candidates in one square.</li>
+      <li>A digit that clashes with another one in the same row, column or box turns red.</li>
+      <li>Check marks every square that does not match the solution.</li>
+    </ul>
+  </dialog>
+
+  <dialog id="statsDlg">
+    <button class="icon-btn dlg-close" type="button" data-close aria-label="Close">✕</button>
+    <h2 id="statsTitle">Statistics</h2>
+    <p id="resultLine" class="result-word" hidden></p>
+    <div class="stats-grid">
+      <div><div class="num" id="stPlayed">0</div><div class="lbl">Played</div></div>
+      <div><div class="num" id="stWin">0</div><div class="lbl">Win %</div></div>
+      <div><div class="num" id="stStreak">0</div><div class="lbl">Streak</div></div>
+      <div><div class="num" id="stMax">0</div><div class="lbl">Best</div></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn primary" type="button" id="againBtn">New puzzle</button>
+      <button class="btn" type="button" id="shareBtn">Share</button>
+    </div>
+  </dialog>
+
+  <script src="js/common.js"></script>
+  <script src="js/kit.js"></script>
+  <script src="js/sudoku.js"></script>
+</body>
+</html>

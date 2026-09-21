@@ -1,20 +1,19 @@
-// Spelling Bee — hány szót raksz ki 7 betűből?
+// Spelling Bee — how many words can you build from seven letters?
 (function () {
   "use strict";
 
-  // [rang neve, a maximális pontszám hány százaléka kell hozzá]
+  // [rank name, percentage of the maximum score needed for it]
   const RANKS = [
-    ["Kezdő", 0], ["Jó kezdés", 2], ["Halad", 5], ["Jó", 8], ["Szilárd", 15],
-    ["Szép", 25], ["Remek", 40], ["Csodás", 50], ["Zseni", 70], ["Méhkirálynő", 100],
+    ["Beginner", 0], ["Good Start", 2], ["Moving Up", 5], ["Good", 8], ["Solid", 15],
+    ["Nice", 25], ["Great", 40], ["Amazing", 50], ["Genius", 70], ["Queen Bee", 100],
   ];
   const GENIUS = 8;
   const QUEEN = 9;
   const MIN_LEN = 4;
   const MAX_ENTRY = 19;
 
-  const lang = WG.getLang();
   const $ = (id) => document.getElementById(id);
-  const collator = new Intl.Collator(lang);
+  const collator = new Intl.Collator("en");
 
   let puzzles, beeWords, day, index, mode, puzzle;
   let found = [];
@@ -22,8 +21,7 @@
   let errorTimer = null;
 
   WG.setupDialogs();
-  WG.setupLangSwitch(lang);
-  WG.loadData(lang).then(init, (err) => WG.toast(err.message, 6000));
+  WG.loadData().then(init, (err) => WG.toast(err.message, 6000));
 
   function init(data) {
     beeWords = WG.splitWords(data.beeWords);
@@ -33,7 +31,7 @@
     const p = WG.params().get("p");
     index = p !== null && /^\d+$/.test(p) && Number(p) < puzzles.length ? Number(p) : todayIndex;
     mode = index === todayIndex ? "daily" : "endless";
-    $("subtitle").textContent = lang.toUpperCase() + " · " + (mode === "daily" ? "#" + (day + 1) : "∞");
+    $("subtitle").textContent = mode === "daily" ? "#" + (day + 1) : "∞";
 
     puzzle = makePuzzle(index);
     found = WG.store.get(stateKey(), []).filter((w) => puzzle.answerSet.has(w));
@@ -72,7 +70,7 @@
   }
 
   function stateKey() {
-    return "bee:" + lang + ":p:" + index;
+    return "bee:p:" + index;
   }
 
   function isPangram(w) {
@@ -100,7 +98,7 @@
     return rank;
   }
 
-  /* ---------- Rajzolás ---------- */
+  /* ---------- Drawing ---------- */
 
   function buildHive() {
     const hive = $("hive");
@@ -169,7 +167,7 @@
   }
 
   function renderFound() {
-    $("foundCount").textContent = found.length + " szó";
+    $("foundCount").textContent = found.length + " words";
     $("foundRecent").textContent = found.slice(-8).reverse().join(" · ");
     const list = $("foundList");
     list.innerHTML = "";
@@ -181,7 +179,7 @@
     });
   }
 
-  /* ---------- Bevitel ---------- */
+  /* ---------- Input ---------- */
 
   function onKey(e) {
     if (WG.anyDialogOpen() || e.metaKey || (e.ctrlKey && !e.altKey)) return;
@@ -233,11 +231,11 @@
     if (!w) return;
     const chars = [...w];
     let message = null;
-    if (chars.length < MIN_LEN) message = "Túl rövid";
-    else if (chars.some((ch) => !puzzle.letterSet.has(ch))) message = "Rossz betű";
-    else if (!chars.includes(puzzle.center)) message = "Hiányzik a középső betű";
-    else if (found.includes(w)) message = "Már megvan";
-    else if (!puzzle.answerSet.has(w)) message = "Nincs a listában";
+    if (chars.length < MIN_LEN) message = "Too short";
+    else if (chars.some((ch) => !puzzle.letterSet.has(ch))) message = "Wrong letter";
+    else if (!chars.includes(puzzle.center)) message = "Missing centre letter";
+    else if (found.includes(w)) message = "Already found";
+    else if (!puzzle.answerSet.has(w)) message = "Not in word list";
 
     if (message) {
       WG.toast(message);
@@ -259,20 +257,20 @@
     entry = "";
     WG.store.set(stateKey(), found);
     render();
-    WG.toast(isPangram(w) ? "Pangram! +" + points : (points === 1 ? "Jó!" : points < 7 ? "Szép!" : "Fantasztikus!") + " +" + points);
+    WG.toast(isPangram(w) ? "Pangram! +" + points : (points === 1 ? "Nice!" : points < 7 ? "Great!" : "Awesome!") + " +" + points);
 
     const after = rankIndex();
-    if (after === QUEEN) setTimeout(() => WG.toast("👑 Méhkirálynő!", 3000), 900);
+    if (after === QUEEN) setTimeout(() => WG.toast("👑 Queen Bee!", 3000), 900);
     else if (after > before) setTimeout(() => WG.toast(RANKS[after][0] + "!", 2000), 900);
   }
 
-  /* ---------- Ablakok ---------- */
+  /* ---------- Dialogs ---------- */
 
   function openRanks() {
     const score = currentScore();
     const rank = rankIndex(score);
     const mins = thresholds();
-    $("ranksScore").textContent = score + " pont · " + found.length + " szó";
+    $("ranksScore").textContent = score + " points · " + found.length + " words";
     const body = $("ranksBody");
     body.innerHTML = "";
     for (let i = RANKS.length - 1; i >= 0; i--) {
@@ -317,7 +315,7 @@
     do {
       i = Math.floor(Math.random() * puzzles.length);
     } while (i === index && puzzles.length > 1);
-    location.href = WG.pageUrl("bee.html", { lang, p: i });
+    location.href = WG.pageUrl("bee.html", { p: i });
   }
 
   function shareText() {
@@ -325,8 +323,8 @@
     const rank = rankIndex(score);
     const label = mode === "daily" ? "#" + (day + 1) : "∞";
     const bar = RANKS.slice(0, GENIUS + 1).map((_, i) => (i <= rank ? "🟨" : "⬜")).join("");
-    return "🐝 Spelling Bee " + lang.toUpperCase() + " " + label + "\n" +
-      RANKS[rank][0] + " — " + score + " pont, " + found.length + " szó\n" + bar + "\n\n" +
-      WG.pageUrl("bee.html", { lang, p: index });
+    return "🐝 Spelling Bee " + label + "\n" +
+      RANKS[rank][0] + " — " + score + " points, " + found.length + " words\n" + bar + "\n\n" +
+      WG.pageUrl("bee.html", { p: index });
   }
 })();

@@ -1,24 +1,21 @@
-// Wordle — magyarul és angolul, napi és végtelen módban.
+// Wordle — a daily puzzle plus an endless mode.
 (function () {
   "use strict";
 
   const ROWS = 6;
   const LEN = 5;
   const FLIP_MS = 300;
-  // "+" = Enter, "-" = törlés
-  const KEY_ROWS = {
-    en: ["qwertyuiop", "asdfghjkl", "+zxcvbnm-"],
-    hu: ["öüóőúéáűí", "qwertzuiop", "asdfghjkl", "+yxcvbnm-"],
-  };
-  const PRAISE = ["Zseniális!", "Lenyűgöző!", "Csodás!", "Szép munka!", "Ügyes!", "Huhh, meglett!"];
-  const EXAMPLES = {
-    hu: [["ablak", 0, "correct", "jó helyen"], ["tükör", 1, "present", "rossz helyen"], ["virág", 3, "absent", "nincs benne"]],
-    en: [["weary", 0, "correct", "jó helyen"], ["pills", 1, "present", "rossz helyen"], ["vague", 3, "absent", "nincs benne"]],
-  };
+  // "+" is Enter, "-" is backspace
+  const KEY_ROWS = ["qwertyuiop", "asdfghjkl", "+zxcvbnm-"];
+  const PRAISE = ["Genius!", "Magnificent!", "Impressive!", "Splendid!", "Great!", "Phew!"];
+  const EXAMPLES = [
+    ["weary", 0, "correct", "right letter, right spot"],
+    ["pills", 1, "present", "right letter, wrong spot"],
+    ["vague", 3, "absent", "not in the word"],
+  ];
   const STATE_RANK = { absent: 1, present: 2, correct: 3 };
   const ICON_BACK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M21 5H9l-6 7 6 7h12V5Z"/><path d="m12 9 6 6M18 9l-6 6"/></svg>';
 
-  const lang = WG.getLang();
   const $ = (id) => document.getElementById(id);
   const boardEl = $("board");
   const kbEl = $("keyboard");
@@ -30,11 +27,10 @@
   let locked = true;
   let finished = false;
   let won = false;
-  let gameId = 0; // új játéknál nő, így a régi animációk nem nyúlnak bele
+  let gameId = 0; // bumped on every new game so old animations stay out of the way
 
   WG.setupDialogs();
-  WG.setupLangSwitch(lang);
-  WG.loadData(lang).then(init, (err) => WG.toast(err.message, 6000));
+  WG.loadData().then(init, (err) => WG.toast(err.message, 6000));
 
   function init(data) {
     answers = WG.splitWords(data.wordleAnswers);
@@ -60,7 +56,7 @@
     if (isPlayable(decoded)) {
       startGame(params.has("v") ? "endless" : "challenge", decoded, c);
     } else {
-      if (c) WG.toast("Hibás link", 2000);
+      if (c) WG.toast("Broken link", 2000);
       startGame("daily", answers[WG.mod(day, answers.length)], null);
     }
     if (finished) setTimeout(openStats, 500);
@@ -70,12 +66,12 @@
     return !!w && [...w].length === LEN && [...w].every((ch) => alphabet.has(ch));
   }
 
-  /* ---------- Játék indítása, mentés ---------- */
+  /* ---------- Starting and saving a game ---------- */
 
   function stateKey() {
-    if (mode === "daily") return "wordle:" + lang + ":d:" + day;
-    if (mode === "endless") return "wordle:" + lang + ":v";
-    return "wordle:" + lang + ":c:" + code;
+    if (mode === "daily") return "wordle:d:" + day;
+    if (mode === "endless") return "wordle:v";
+    return "wordle:c:" + code;
   }
 
   function startGame(newMode, word, newCode) {
@@ -87,7 +83,7 @@
     current = "";
     finished = false;
     won = false;
-    $("subtitle").textContent = lang.toUpperCase() + " · " + (mode === "daily" ? "#" + (day + 1) : mode === "endless" ? "∞" : "kihívás");
+    $("subtitle").textContent = mode === "daily" ? "#" + (day + 1) : mode === "endless" ? "∞" : "challenge";
     buildBoard();
     buildKeyboard();
     sizeBoard();
@@ -116,8 +112,8 @@
       w = answers[Math.floor(Math.random() * answers.length)];
     } while (w === answer && answers.length > 1);
     const c = WG.encodeWord(w);
-    WG.store.set("wordle:" + lang + ":v", null);
-    history.replaceState(null, "", WG.pageUrl("wordle.html", { lang, c, v: "1" }));
+    WG.store.set("wordle:v", null);
+    history.replaceState(null, "", WG.pageUrl("wordle.html", { c, v: "1" }));
     document.querySelectorAll("dialog[open]").forEach((d) => d.close());
     startGame("endless", w, c);
   }
@@ -144,7 +140,7 @@
     return result;
   }
 
-  /* ---------- Rajzolás ---------- */
+  /* ---------- Drawing ---------- */
 
   function buildBoard() {
     boardEl.innerHTML = "";
@@ -178,7 +174,7 @@
 
   function buildKeyboard() {
     kbEl.innerHTML = "";
-    KEY_ROWS[lang].forEach((letters, rowIndex) => {
+    KEY_ROWS.forEach((letters) => {
       const row = document.createElement("div");
       row.className = "kb-row";
       for (const ch of letters) {
@@ -186,7 +182,6 @@
         const key = document.createElement("button");
         key.type = "button";
         key.className = "key";
-        if (lang === "hu" && rowIndex === 0) key.classList.add("accent-row");
         if (ch === "+") {
           key.classList.add("wide");
           key.textContent = "Enter";
@@ -194,14 +189,14 @@
         } else if (ch === "-") {
           key.classList.add("wide");
           key.innerHTML = ICON_BACK;
-          key.setAttribute("aria-label", "Törlés");
+          key.setAttribute("aria-label", "Backspace");
           key.addEventListener("click", backspace);
         } else {
           key.textContent = ch;
           key.dataset.key = ch;
           key.addEventListener("click", () => addLetter(ch));
         }
-        // ne kapjon fókuszt, különben az Enter újra "megnyomná" a gombot
+        // keep focus off the keys, otherwise Enter would press the last one again
         key.addEventListener("mousedown", (e) => e.preventDefault());
         row.appendChild(key);
       }
@@ -242,7 +237,7 @@
   function renderExamples() {
     const box = $("examples");
     box.innerHTML = "";
-    EXAMPLES[lang].forEach(([word, index, state, caption]) => {
+    EXAMPLES.forEach(([word, index, state, caption]) => {
       const row = document.createElement("div");
       row.className = "example";
       [...word].forEach((ch, i) => {
@@ -258,7 +253,7 @@
     });
   }
 
-  /* ---------- Bevitel ---------- */
+  /* ---------- Input ---------- */
 
   function onKey(e) {
     if (WG.anyDialogOpen() || e.metaKey || (e.ctrlKey && !e.altKey)) return;
@@ -274,7 +269,7 @@
     }
   }
 
-  // Játék végén az Enter azonnal új szót indít.
+  // Once the game is over Enter starts a fresh word.
   function onEnter() {
     if (finished && !locked) newEndlessGame();
     else submit();
@@ -302,8 +297,8 @@
 
   function submit() {
     if (locked || finished) return;
-    if ([...current].length < LEN) return reject("Kevés a betű");
-    if (!words.has(current) && current !== answer) return reject("Nincs a szólistában");
+    if ([...current].length < LEN) return reject("Not enough letters");
+    if (!words.has(current) && current !== answer) return reject("Not in word list");
 
     const id = gameId;
     const guess = current;
@@ -349,10 +344,10 @@
     }, 1600);
   }
 
-  /* ---------- Statisztika és megosztás ---------- */
+  /* ---------- Stats and sharing ---------- */
 
   function statsKey() {
-    return "wordle:" + lang + (mode === "endless" ? ":stats:v" : ":stats");
+    return "wordle" + (mode === "endless" ? ":stats:v" : ":stats");
   }
 
   function loadStats() {
@@ -391,7 +386,7 @@
     if (hasStats) {
       const s = loadStats();
       const streakBroken = mode === "daily" && !(s.lastWinDay !== null && s.lastWinDay >= day - 1);
-      $("statsHeading").textContent = mode === "daily" ? "Napi" : "Végtelen";
+      $("statsHeading").textContent = mode === "daily" ? "Daily" : "Endless";
       $("stPlayed").textContent = s.played;
       $("stWin").textContent = s.played ? Math.round((100 * s.wins) / s.played) : 0;
       $("stStreak").textContent = streakBroken ? 0 : s.streak;
@@ -416,7 +411,7 @@
       });
     }
 
-    $("statsTitle").textContent = finished ? answer.toUpperCase() : "Statisztika";
+    $("statsTitle").textContent = finished ? answer.toUpperCase() : "Statistics";
     const resultWord = $("resultWord");
     resultWord.hidden = !finished;
     resultWord.textContent = finished ? (won ? guesses.length : "X") + "/6" : "";
@@ -426,12 +421,12 @@
   }
 
   function shareText() {
-    const label = mode === "daily" ? "#" + (day + 1) : mode === "endless" ? "∞" : "kihívás";
+    const label = mode === "daily" ? "#" + (day + 1) : mode === "endless" ? "∞" : "challenge";
     const grid = guesses
       .map((g) => evaluate(g, answer).map((r) => (r === "correct" ? "🟩" : r === "present" ? "🟨" : "⬛")).join(""))
       .join("\n");
-    const query = mode === "daily" ? { lang } : mode === "endless" ? { lang, c: code, v: "1" } : { lang, c: code };
-    return "Wordle " + lang.toUpperCase() + " " + label + " " + (won ? guesses.length : "X") + "/6\n\n" +
+    const query = mode === "daily" ? {} : mode === "endless" ? { c: code, v: "1" } : { c: code };
+    return "Wordle " + label + " " + (won ? guesses.length : "X") + "/6\n\n" +
       grid + "\n\n" + WG.pageUrl("wordle.html", query);
   }
 
@@ -447,17 +442,17 @@
       result.hidden = true;
       error.textContent = "";
       if ([...w].length !== LEN) {
-        error.textContent = "5 betű kell";
+        error.textContent = "Five letters, please";
       } else if (!words.has(w)) {
-        error.textContent = "Nincs a szólistában";
+        error.textContent = "Not in word list";
       } else {
-        link = WG.pageUrl("wordle.html", { lang, c: WG.encodeWord(w) });
+        link = WG.pageUrl("wordle.html", { c: WG.encodeWord(w) });
         $("challengeLink").value = link;
         result.hidden = false;
       }
     });
     $("challengeShare").addEventListener("click", () => {
-      WG.share("Wordle kihívás (" + lang.toUpperCase() + "): " + link);
+      WG.share("Wordle challenge: " + link);
     });
     $("challengeDlg").addEventListener("close", () => {
       input.value = "";

@@ -104,29 +104,7 @@ a { color: var(--accent); }
 
 .icon-btn svg { width: 24px; height: 24px; }
 
-.lang-switch {
-  display: inline-flex;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.lang-switch button {
-  border: 0;
-  background: transparent;
-  padding: 5px 10px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  cursor: pointer;
-  color: var(--muted);
-}
-
-.lang-switch button[aria-pressed="true"] {
-  background: var(--text);
-  color: var(--bg);
-}
-
-/* ---------- Üzenetek ---------- */
+/* ---------- Messages ---------- */
 
 #toasts {
   position: fixed;
@@ -164,7 +142,7 @@ a { color: var(--accent); }
 
 @keyframes toast-in { from { opacity: 0; transform: translateY(-6px); } }
 
-/* ---------- Ablakok ---------- */
+/* ---------- Dialogs ---------- */
 
 dialog {
   width: min(460px, calc(100vw - 24px));
@@ -233,7 +211,7 @@ dialog p, dialog li { line-height: 1.45; }
 
 .center { text-align: center; }
 
-/* ---------- Főoldal ---------- */
+/* ---------- Home page ---------- */
 
 .hub {
   max-width: 720px;
@@ -397,7 +375,6 @@ dialog p, dialog li { line-height: 1.45; }
 
 .key.wide { flex-grow: 1.6; max-width: 70px; font-size: 0.75rem; }
 .key.wide svg { width: 22px; height: 22px; }
-.key.accent-row { height: 44px; }
 
 .key.correct { background: var(--correct); color: var(--on-color); }
 .key.present { background: var(--present); color: var(--on-color); }
@@ -600,7 +577,6 @@ dialog p, dialog li { line-height: 1.45; }
 
 @media (max-height: 700px) {
   .key { height: 48px; }
-  .key.accent-row { height: 38px; }
   .topbar { height: 50px; }
 }
 
@@ -609,5 +585,4 @@ dialog p, dialog li { line-height: 1.45; }
   .topbar h1 { font-size: 1.2rem; }
   .topbar h1 small { display: none; }
   .icon-btn { width: 34px; }
-  .lang-switch button { padding: 5px 8px; }
 }

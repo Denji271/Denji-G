@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Mini Crossword</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23333'/%3E%3Crect x='14' y='14' width='72' height='72' fill='none' stroke='white' stroke-width='6'/%3E%3Cpath d='M38 14v72M62 14v72M14 38h72M14 62h72' stroke='white' stroke-width='4'/%3E%3Crect x='62' y='14' width='24' height='24' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/games.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="icon-btn" href="index.html" aria-label="Home" title="Home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+    </a>
+    <h1>Mini Crossword<small id="subtitle"></small></h1>
+    <button class="icon-btn" type="button" data-open="helpDlg" aria-label="How to play" title="How to play"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.2 9.2a2.9 2.9 0 1 1 4.1 2.6c-.9.4-1.3 1-1.3 2v.4"/><circle cx="12" cy="17.4" r=".7" fill="currentColor"/></svg></button>
+    <button class="icon-btn" type="button" id="statsBtn" aria-label="Statistics" title="Statistics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 20v-8M12 20V4M19 20v-5"/></svg></button>
+    <button class="icon-btn" type="button" id="newBtn" aria-label="New puzzle" title="New puzzle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.2 8.2c-2.3 0-3.9 2-6.2 3.8s-3.9 3.8-6.2 3.8a3.8 3.8 0 0 1 0-7.6c2.3 0 3.9 2 6.2 3.8s3.9 3.8 6.2 3.8a3.8 3.8 0 0 0 0-7.6Z"/></svg></button>
+  </header>
+
+  <main class="game-main">
+    <div class="game-bar">
+      <span>Filled: <b id="filled">0</b> / <b id="total">0</b></span>
+      <span>Time: <b id="clock">0:00</b></span>
+    </div>
+
+    <div class="cw-grid" id="grid" aria-label="Crossword grid"></div>
+
+    <button class="cw-active" id="activeClue" type="button"></button>
+
+    <div id="keyboard" class="keyboard" aria-label="Keyboard"></div>
+
+    <div class="cw-clues">
+      <div>
+        <h3>Across</h3>
+        <ol id="acrossList"></ol>
+      </div>
+      <div>
+        <h3>Down</h3>
+        <ol id="downList"></ol>
+      </div>
+    </div>
+
+    <div class="game-actions">
+      <button class="btn" type="button" id="checkBtn">Check</button>
+      <button class="btn" type="button" id="revealBtn">Reveal word</button>
+    </div>
+  </main>
+
+  <div id="toasts" aria-live="polite"></div>
+
+  <dialog id="helpDlg">
+    <button class="icon-btn dlg-close" type="button" data-close aria-label="Close">✕</button>
+    <h2>How to play</h2>
+    <ul class="dlg-list">
+      <li>Fill every white square so the across and down answers match their clues.</li>
+      <li>Click a square to type there; click it again to switch between across and down.</li>
+      <li>The bar under the grid always shows the clue you are working on.</li>
+      <li>Check marks the wrong letters, and Reveal fills in the answer you are on.</li>
+    </ul>
+  </dialog>
+
+  <dialog id="statsDlg">
+    <button class="icon-btn dlg-close" type="button" data-close aria-label="Close">✕</button>
+    <h2 id="statsTitle">Statistics</h2>
+    <p id="resultLine" class="result-word" hidden></p>
+    <div class="stats-grid">
+      <div><div class="num" id="stPlayed">0</div><div class="lbl">Played</div></div>
+      <div><div class="num" id="stWin">0</div><div class="lbl">Win %</div></div>
+      <div><div class="num" id="stStreak">0</div><div class="lbl">Streak</div></div>
+      <div><div class="num" id="stMax">0</div><div class="lbl">Best</div></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn primary" type="button" id="againBtn">New puzzle</button>
+      <button class="btn" type="button" id="shareBtn">Share</button>
+    </div>
+  </dialog>
+
+  <script src="js/common.js"></script>
+  <script src="js/kit.js"></script>
+  <script src="js/crossword.js"></script>
+</body>
+</html>
