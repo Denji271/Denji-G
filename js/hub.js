@@ -73,8 +73,40 @@
     games.forEach((game) => box.appendChild(buildCard(game)));
   }
 
+  render("multiCards", GAMES.multi);
   render("wordCards", GAMES.word);
   render("puzzleCards", GAMES.puzzle);
+
+  // A room code alone is enough: the host's room tells us which game to open.
+  const joinForm = document.getElementById("joinForm");
+  const joinCode = document.getElementById("joinCode");
+  const joinError = document.getElementById("joinError");
+  joinCode.addEventListener("input", () => {
+    joinCode.value = NET.cleanCode(joinCode.value);
+  });
+  joinForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const code = NET.cleanCode(joinCode.value);
+    if (!NET.validCode(code)) {
+      joinError.textContent = "Type the " + NET.CODE_LEN + "-character room code";
+      return;
+    }
+    const btn = document.getElementById("joinBtn");
+    btn.disabled = true;
+    joinError.textContent = "Looking for room " + code + "…";
+    try {
+      // "hub" matches no game, so the host answers with the page to open
+      await NET.join(code, { game: "hub", name: WG.store.get("mp:name", "") });
+      joinError.textContent = "";
+    } catch (err) {
+      if (err instanceof NET.WrongGame) {
+        location.href = WG.pageUrl(err.page, { join: code });
+        return;
+      }
+      joinError.textContent = err.message;
+    }
+    btn.disabled = false;
+  });
 
   document.addEventListener("click", (e) => {
     if (!e.target.closest(".card-wrap")) {

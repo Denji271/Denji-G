@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Map Maker</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23f0c419'/%3E%3Cpath d='M22 78h14l40-40-14-14-40 40z' fill='%23333'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/arcade.css">
+</head>
+<body class="arcade">
+  <header class="topbar">
+    <a class="icon-btn" href="index.html" aria-label="Home" title="Home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+    </a>
+    <h1>Map Maker<small id="subtitle"></small></h1>
+    <button class="icon-btn" type="button" data-open="helpDlg" aria-label="How it works" title="How it works"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.2 9.2a2.9 2.9 0 1 1 4.1 2.6c-.9.4-1.3 1-1.3 2v.4"/><circle cx="12" cy="17.4" r=".7" fill="currentColor"/></svg></button>
+  </header>
+
+  <div class="ed-bar">
+    <div class="ed-palette" id="palette" role="toolbar" aria-label="Tiles"></div>
+    <div class="ed-row">
+      <input class="text-input" id="edName" maxlength="30" placeholder="Map name" aria-label="Map name">
+      <select class="text-input" id="edMode" aria-label="Game">
+        <option value="coop">Co-op Climb</option>
+        <option value="race">Platform Race</option>
+        <option value="brawl">Brawl</option>
+      </select>
+      <label class="ed-size">W <input class="text-input" id="edW" type="number" min="10" max="120"></label>
+      <label class="ed-size">H <input class="text-input" id="edH" type="number" min="8" max="30"></label>
+      <select class="text-input" id="edZoom" aria-label="Zoom">
+        <option value="0.5">50%</option>
+        <option value="0.75" selected>75%</option>
+        <option value="1">100%</option>
+      </select>
+    </div>
+    <div class="ed-row">
+      <button class="btn small primary" type="button" id="edTest">▶ Test</button>
+      <button class="btn small" type="button" id="edCheck" title="A robot plays your map and tells you whether it can be finished">🤖 Robot check</button>
+      <span class="ed-random">
+        <button class="btn small" type="button" id="edRandom">🎲 Random map</button>
+        <select class="text-input" id="edDiff" aria-label="Difficulty of the random map">
+          <option value="0.15">Easy</option>
+          <option value="0.5" selected>Medium</option>
+          <option value="0.85">Hard</option>
+        </select>
+      </span>
+      <button class="btn small" type="button" id="edSave">Save</button>
+      <button class="btn small" type="button" id="edHost">Host a room with it</button>
+      <button class="btn small" type="button" id="edMaps">My maps</button>
+      <button class="btn small" type="button" id="edExport">Share code</button>
+      <button class="btn small" type="button" id="edImport">Import code</button>
+      <button class="btn small" type="button" id="edUndo" title="Ctrl+Z">Undo</button>
+      <button class="btn small" type="button" id="edNew">New</button>
+    </div>
+    <p class="ed-status" id="edStatus"></p>
+  </div>
+
+  <main class="ed-stage">
+    <div class="ed-scroll" id="edScroll"><canvas id="edCanvas"></canvas></div>
+  </main>
+
+  <div id="toasts" aria-live="polite"></div>
+
+  <dialog id="helpDlg">
+    <button class="icon-btn dlg-close" type="button" data-close aria-label="Close">✕</button>
+    <h2>Map Maker</h2>
+    <ul class="dlg-list">
+      <li>Pick a tile and draw with the <b>left</b> mouse button; the <b>right</b> button erases.</li>
+      <li><b>S</b> marks where players start (up to four), <b>G</b> is the exit or finish line, the flag is a checkpoint.</li>
+      <li>A coloured switch holds the door of the same colour open while somebody stands on it. The key (co-op) has to be carried to the exit.</li>
+      <li>A normal jump climbs <b>3</b> blocks; standing on a friend's head you reach <b>4</b>. A spring throws you about 8 blocks high.</li>
+      <li><b>Test</b> lets you run around in your map (<kbd>Esc</kbd> stops). <b>Save</b> keeps it in this browser — then host a Co-op, Race or Brawl room and pick it under <i>Level</i>. Your friends receive the map automatically.</li>
+      <li><b>Share code</b> copies the map as text, which a friend can paste with <b>Import code</b>.</li>
+      <li><b>🎲 Random map</b> builds a whole new level for the chosen game — play it as it is or use it as a starting point.</li>
+      <li><b>🤖 Robot check</b> sends a little robot through your map with the real game physics and tells you whether it can be finished (and, for co-op, whether it really needs teamwork).</li>
+    </ul>
+  </dialog>
+
+  <dialog id="mapsDlg">
+    <button class="icon-btn dlg-close" type="button" data-close aria-label="Close">✕</button>
+    <h2>My maps</h2>
+    <ul class="ed-maps" id="mapsList"></ul>
+  </dialog>
+
+  <dialog id="importDlg">
+    <button class="icon-btn dlg-close" type="button" data-close aria-label="Close">✕</button>
+    <h2>Import a map</h2>
+    <form id="importForm">
+      <textarea class="text-input ed-code" id="importText" rows="5" spellcheck="false" placeholder="Paste a map code here"></textarea>
+      <p class="form-error" id="importError"></p>
+      <div class="btn-row"><button class="btn primary" type="submit">Load map</button></div>
+    </form>
+  </dialog>
+
+  <script src="js/common.js"></script>
+  <script src="js/arcade.js"></script>
+  <script src="js/platform-engine.js"></script>
+  <script src="data/levels.js"></script>
+  <script src="js/level-gen.js"></script>
+  <script src="js/editor.js"></script>
+</body>
+</html>

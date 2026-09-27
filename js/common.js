@@ -266,6 +266,7 @@
     mod,
     loadData,
     loadPacks,
+    loadScript: loadFile,
     rng,
     seedFrom,
     shuffle,

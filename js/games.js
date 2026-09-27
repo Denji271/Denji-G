@@ -240,5 +240,139 @@
     },
   ];
 
-  window.GAMES = { word: WORD, puzzle: PUZZLE, all: WORD.concat(PUZZLE) };
+  // Real-time games for 2–4 people on their own computers (a room code connects them).
+  const RED = "#e05c4a";
+  const BLUE = "#2f6fde";
+  const LIME = "#57a05a";
+  const GOLD = "#f0c419";
+  const guy = (x, y, color) =>
+    '<rect x="' + x + '" y="' + y + '" width="11" height="11" rx="2.5" fill="' + color + '"/>' +
+    '<circle cx="' + (x + 7.5) + '" cy="' + (y + 4.5) + '" r="1.4" fill="#fff"/>';
+
+  const MULTI = [
+    {
+      id: "curve",
+      name: "Curve Fever",
+      url: "curve.html",
+      icon: svg(
+        '<path d="M6 36C18 6 34 42 50 18S74 8 80 20" fill="none" stroke="' + RED + '" stroke-width="3.2" stroke-linecap="round"/>' +
+          '<path d="M8 8c14 4 12 26 30 26s20-18 36-12" fill="none" stroke="' + BLUE + '" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="30 5 60"/>'
+      ),
+      info:
+        "Everybody steers a line that keeps on growing — left or right, nothing else. Crash into a wall or " +
+        "any line and you are out; now and then your line leaves a gap to slip through. Last one alive wins the round.",
+    },
+    {
+      id: "tanks",
+      name: "Tank Trouble",
+      url: "tanks.html",
+      icon: svg(
+        '<path d="M2 2h80v40H2zM30 2v22M56 20v22M2 24h16" fill="none" stroke="var(--border-strong)" stroke-width="2"/>' +
+          '<g transform="rotate(-20 17 34)"><rect x="9" y="29" width="16" height="11" rx="2" fill="' + LIME + '"/><rect x="17" y="32.5" width="11" height="3.5" rx="1" fill="' + LIME + '"/></g>' +
+          '<g transform="rotate(200 68 12)"><rect x="60" y="7" width="16" height="11" rx="2" fill="' + RED + '"/><rect x="68" y="10.5" width="11" height="3.5" rx="1" fill="' + RED + '"/></g>' +
+          '<path d="M30 28 44 14l10 8" fill="none" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="2 2.5"/><circle cx="54" cy="22" r="2" fill="' + INK + '"/>'
+      ),
+      info:
+        "Little tanks in a maze. Your shells bounce off the walls — and they hit you too if you are careless. " +
+        "The last tank rolling scores a point; a new maze every round.",
+    },
+    {
+      id: "bomber",
+      name: "Bomberman",
+      url: "bomber.html",
+      icon: svg(
+        squares(
+          [
+            [null, SURFACE, "var(--border-strong)", SURFACE, "#b07a45"],
+            ["#b07a45", "var(--border-strong)", null, "var(--border-strong)", SURFACE],
+            [SURFACE, "#b07a45", SURFACE, "#b07a45", null],
+          ],
+          14,
+          7,
+          1
+        ) +
+          '<circle cx="42" cy="29" r="6" fill="#1a1a1b" stroke="var(--bg)" stroke-width="1"/><path d="M45 23c2-3 5-3 6-6" stroke="' + GOLD + '" stroke-width="1.8" fill="none" stroke-linecap="round"/>' +
+          guy(9, 2, BLUE)
+      ),
+      info:
+        "Drop bombs, blow up the crates and trap the others in the blast. Crates hide power-ups for more " +
+        "bombs, bigger flames and extra speed. Last one standing takes the round.",
+    },
+    {
+      id: "coop",
+      name: "Co-op Climb",
+      url: "platformer.html?mode=coop",
+      icon: svg(
+        '<rect x="2" y="38" width="80" height="5" rx="1" fill="var(--border-strong)"/><rect x="56" y="14" width="26" height="5" rx="1" fill="var(--border-strong)"/>' +
+          guy(34, 27, RED) + guy(34, 15, BLUE) +
+          '<rect x="70" y="2" width="9" height="12" rx="1.5" fill="none" stroke="' + GOLD + '" stroke-width="1.8"/>'
+      ),
+      info:
+        "A platformer you can only beat together: stand on each other's heads, hold down switches that open " +
+        "doors and carry the key to the exit. 50 levels that get harder, plus endless random ones.",
+    },
+    {
+      id: "race",
+      name: "Platform Race",
+      url: "platformer.html?mode=race",
+      icon: svg(
+        '<rect x="2" y="38" width="30" height="5" rx="1" fill="var(--border-strong)"/><rect x="40" y="30" width="20" height="5" rx="1" fill="var(--border-strong)"/>' +
+          '<rect x="66" y="38" width="16" height="5" rx="1" fill="var(--border-strong)"/><path d="M76 38V12" stroke="' + INK + '" stroke-width="1.8"/><path d="M76 12h8l-2 4 2 4h-8" fill="' + LIME + '"/>' +
+          guy(10, 27, BLUE) + guy(44, 12, RED)
+      ),
+      info:
+        "Everybody runs the same level at the same time — jump the gaps, dodge the spikes and bump the others " +
+        "out of the way. First to the flag scores the most. 50 courses plus endless random ones.",
+    },
+    {
+      id: "brawl",
+      name: "Brawl",
+      url: "platformer.html?mode=brawl",
+      icon: svg(
+        '<rect x="10" y="36" width="64" height="6" rx="1.5" fill="var(--border-strong)"/>' +
+          guy(26, 25, GOLD) + guy(50, 18, RED) +
+          '<path d="M44 22l3 2 1-4 2 3 2-2-1 4 3 1-3 2" fill="none" stroke="' + INK + '" stroke-width="1.4" stroke-linejoin="round"/>'
+      ),
+      info:
+        "Knock the others off the stage! Every hit raises their damage, and the higher it is the further they " +
+        "fly. Three lives each — the last player left on the stage wins. 50 arenas or a random one.",
+    },
+    {
+      id: "editor",
+      name: "Map Maker",
+      url: "editor.html",
+      icon: svg(
+        squares(
+          [
+            [SURFACE, SURFACE, SURFACE, SURFACE, SURFACE, SURFACE],
+            [SURFACE, SURFACE, SURFACE, "var(--border-strong)", "var(--border-strong)", SURFACE],
+            ["var(--border-strong)", "var(--border-strong)", SURFACE, SURFACE, SURFACE, SURFACE],
+            ["var(--border-strong)", "var(--border-strong)", "var(--border-strong)", "var(--border-strong)", "var(--border-strong)", "var(--border-strong)"],
+          ],
+          10,
+          12,
+          2
+        ) + '<path d="M62 30 76 16l4 4-14 14h-4z" fill="' + GOLD + '" stroke="' + INK + '" stroke-width="1.2" stroke-linejoin="round"/>'
+      ),
+      info:
+        "Draw your own platformer levels: walls, spikes, springs, switches and doors. Test them on your own, " +
+        "then host a room with it. No ideas? Roll a random map, and let the robot check whether yours can be beaten.",
+    },
+    {
+      id: "wordchain",
+      name: "Word Chain",
+      url: "wordchain.html",
+      icon: svg(
+        '<g font-size="10" font-weight="800" fill="' + INK + '" text-anchor="middle">' +
+          '<text x="14" y="18">CA<tspan fill="' + LIME + '">T</tspan></text><text x="42" y="30"><tspan fill="' + LIME + '">T</tspan>O<tspan fill="' + BLUE + '">P</tspan></text>' +
+          '<text x="70" y="18"><tspan fill="' + BLUE + '">P</tspan>EN</text></g>' +
+          '<path d="M24 20l6 5M52 25l6-5" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"/>'
+      ),
+      info:
+        "Take turns saying English words: each one has to start with the last letter of the word before. " +
+        "The clock gets shorter every round — run out of time and you lose a life.",
+    },
+  ];
+
+  window.GAMES = { word: WORD, puzzle: PUZZLE, multi: MULTI, all: WORD.concat(PUZZLE) };
 })();
