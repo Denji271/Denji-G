@@ -425,3 +425,214 @@ kbd {
 
 .ed-random { display: inline-flex; gap: 4px; align-items: center; }
 .ed-row .ed-random .text-input { min-height: 34px; padding: 2px 6px; font-size: 0.85rem; }
+
+/* ---------- Word Bomb ---------- */
+
+.wb {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 10px 16px;
+  overflow: auto;
+}
+
+.wb-ring {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.wb-ring li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: var(--surface);
+  font-weight: 700;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.wb-ring li.turn {
+  border-color: var(--pc);
+  background: color-mix(in srgb, var(--pc) 20%, var(--surface));
+  transform: translateY(-3px);
+}
+
+.wb-ring li.out { opacity: 0.45; }
+.wb-ring li.out .name { text-decoration: line-through; }
+.wb-ring .lives { color: #e05c4a; letter-spacing: 1px; }
+
+.wb-bomb {
+  position: relative;
+  flex: none;
+  width: clamp(120px, 24vh, 180px);
+  aspect-ratio: 1;
+}
+
+.wb-bomb svg { position: absolute; inset: 0; width: 100%; height: 100%; transform-origin: 47% 58%; }
+.wb-body { fill: #2b2b2e; stroke: var(--border-strong); stroke-width: 2; }
+.wb-cap { fill: #5a5a60; }
+.wb-shine { fill: rgba(255, 255, 255, 0.22); }
+.wb-fuse { fill: none; stroke: #b08a5a; stroke-width: 5; stroke-linecap: round; }
+.wb-spark { fill: #f0c419; }
+
+.wb-bomb b {
+  position: absolute;
+  left: 46.7%;
+  top: 58.3%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: clamp(1.6rem, 5.5vh, 2.6rem);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  pointer-events: none;
+}
+
+.wb-bomb b.new { animation: pop 0.25s; }
+.wb-bomb.boom .wb-body { animation: wb-boom 0.6s; }
+
+@keyframes wb-boom {
+  0%, 40% { fill: #e05c4a; }
+}
+
+.wb-last { min-height: 1.4em; color: var(--muted); font-weight: 800; letter-spacing: 0.08em; }
+.wb-last b { color: var(--pc, var(--accent)); }
+
+.wb-letters { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
+
+.wb-letters span {
+  width: 22px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.wb-letters span.on { background: var(--correct); color: var(--on-color); }
+
+/* ---------- Draw & Guess ---------- */
+
+.dg {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 10px;
+  padding: 0 10px 6px;
+}
+
+.dg-board { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+
+.dg-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 34px;
+}
+
+.dg-round, .dg-secs { color: var(--muted); font-size: 0.85rem; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dg-secs { min-width: 3.5em; text-align: right; }
+.dg-word { flex: 1; text-align: center; font-size: 1.15rem; letter-spacing: 0.04em; }
+.dg-word.mask { font-family: ui-monospace, Consolas, monospace; letter-spacing: 0.08em; white-space: pre; }
+
+.dg-canvas { position: relative; margin: 0; }
+.dg-canvas canvas { cursor: crosshair; box-shadow: 0 0 0 1px var(--border); }
+
+.dg-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  background: color-mix(in srgb, var(--bg) 45%, transparent);
+}
+
+.dg-card {
+  max-width: 100%;
+  padding: 16px 22px;
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--pc, var(--accent));
+  border-radius: 12px;
+  background: var(--bg);
+  box-shadow: var(--shadow);
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.dg-card h3 { margin: 0; }
+.dg-card p { margin: 0 0 6px; font-size: 0.9rem; }
+.dg-card b { font-size: 1.4rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.dg-card .btn { text-transform: capitalize; }
+
+.dg-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 10px; }
+.dg-tools.off { visibility: hidden; }
+.dg-colors, .dg-sizes { display: flex; flex-wrap: wrap; gap: 4px; }
+
+.dg-swatch, .dg-size {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.dg-size { display: grid; place-items: center; background: var(--surface); }
+.dg-size span { display: block; border-radius: 50%; background: var(--text); }
+.dg-swatch.on, .dg-size.on, .dg-tools .btn.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+
+.dg-side { width: 290px; flex: none; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+
+.dg-chat {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 8px 10px;
+  overflow-y: auto;
+  list-style: none;
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+
+.dg-chat li { padding: 3px 0; }
+.dg-chat li b { color: var(--pc, var(--text)); }
+.dg-chat li.system { color: var(--muted); font-style: italic; }
+.dg-chat li.correct { margin: 2px -4px; padding: 3px 4px; border-radius: 6px; background: color-mix(in srgb, var(--correct) 25%, transparent); font-weight: 700; }
+.dg-chat li.close { color: var(--present); font-weight: 700; }
+
+@media (max-width: 760px) {
+  .dg { flex-direction: column; gap: 6px; }
+  .dg-side { width: auto; height: 22vh; min-height: 110px; gap: 6px; }
+  .dg-chat { padding: 6px 8px; font-size: 0.88rem; }
+  .dg-bar { min-height: 28px; }
+  .dg-tools { gap: 4px 6px; }
+  .dg-swatch, .dg-size { width: 26px; height: 26px; }
+  .dg-tools .btn.small { min-height: 30px; padding: 0 10px; }
+  .dg + .controls-hint { display: none; }
+}
+
+/* ---------- 3D games ---------- */
+
+.k3-fail { max-width: 420px; margin: 0; padding: 16px; text-align: center; color: var(--muted); font-weight: 600; }
+.canvas-wrap canvas.aim { cursor: crosshair; }
+.canvas-wrap canvas.orbit { cursor: grab; }
+.canvas-wrap canvas.orbit:active { cursor: grabbing; }

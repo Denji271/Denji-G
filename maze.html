@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Maze Race</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%232f6b3f'/%3E%3Cpath d='M20 20h60v60H20zM20 50h30M50 35v30M65 20v30M35 65h30' fill='none' stroke='%23b8e08a' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/arcade.css">
+</head>
+<body class="arcade">
+  <header class="topbar">
+    <a class="icon-btn" href="index.html" aria-label="Home" title="Home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+    </a>
+    <h1>Maze Race<small id="subtitle"></small></h1>
+    <button class="icon-btn" type="button" data-open="helpDlg" aria-label="How to play" title="How to play"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.2 9.2a2.9 2.9 0 1 1 4.1 2.6c-.9.4-1.3 1-1.3 2v.4"/><circle cx="12" cy="17.4" r=".7" fill="currentColor"/></svg></button>
+  </header>
+
+  <main class="stage">
+    <div class="hud" id="hud"></div>
+    <div class="canvas-wrap"><canvas id="game" class="orbit"></canvas></div>
+    <p class="controls-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · <b>drag</b> to look around (or <kbd>Q</kbd> <kbd>E</kbd>), wheel to zoom · <kbd>F</kbd> first person · <kbd>Esc</kbd> menu</p>
+    <div id="lobby"></div>
+  </main>
+
+  <div id="toasts" aria-live="polite"></div>
+
+  <dialog id="helpDlg">
+    <button class="icon-btn dlg-close" type="button" data-close aria-label="Close">✕</button>
+    <h2>How to play</h2>
+    <ul class="dlg-list">
+      <li>Everybody starts in the same corner of a hedge maze. Find your way to the exit — the column of light in the far corner shows where it is, but not how to get there.</li>
+      <li>Your own footprints stay on the ground, so you can tell where you have already been.</li>
+      <li>The first one out scores 3 points, then 2, then 1. Once somebody is out, the others have 45 seconds left.</li>
+      <li>Every round the maze is new and a bit bigger. Most points after the last round wins.</li>
+      <li>Drag with the mouse to look around (or use <kbd>Q</kbd> <kbd>E</kbd>), scroll to zoom, and press <kbd>F</kbd> for first-person view. <kbd>W</kbd> always walks the way you are looking.</li>
+    </ul>
+  </dialog>
+
+  <script src="js/common.js"></script>
+  <script src="js/net.js"></script>
+  <script src="js/arcade.js"></script>
+  <script src="js/lobby.js"></script>
+  <script src="js/three-kit.js"></script>
+  <script src="js/maze.js"></script>
+</body>
+</html>

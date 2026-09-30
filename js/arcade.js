@@ -14,6 +14,12 @@
     jump: ["ArrowUp", "KeyW", "Space"],
     action: ["Space", "KeyJ", "KeyX"],
     attack: ["KeyJ", "KeyX", "KeyK"],
+    reload: ["KeyR"],
+    view: ["KeyV"],
+    camLeft: ["KeyQ"],
+    camRight: ["KeyE"],
+    look: ["KeyF"],
+    dive: ["ShiftLeft", "ShiftRight"],
   };
   const NO_SCROLL = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"]);
 

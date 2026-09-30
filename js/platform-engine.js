@@ -149,13 +149,14 @@
       dir = 0;
     }
 
-    // run
+    // run (o.run speeds somebody up, e.g. whoever is "it" in Tag)
     const accel = p.ground ? ACCEL_GROUND : ACCEL_AIR;
+    const run = RUN * (o.run || 1);
     if (dir) {
       p.face = dir;
-      if (Math.sign(p.vx) !== dir || Math.abs(p.vx) < RUN) {
+      if (Math.sign(p.vx) !== dir || Math.abs(p.vx) < run) {
         p.vx += dir * accel * dt;
-        if (Math.abs(p.vx) > RUN && Math.sign(p.vx) === dir) p.vx = dir * RUN;
+        if (Math.abs(p.vx) > run && Math.sign(p.vx) === dir) p.vx = dir * run;
       } else {
         p.vx -= Math.sign(p.vx) * AIR_DRAG * dt; // coming down from a knock-back
       }

@@ -74,6 +74,7 @@
   }
 
   render("multiCards", GAMES.multi);
+  render("threeCards", GAMES.three);
   render("wordCards", GAMES.word);
   render("puzzleCards", GAMES.puzzle);
 

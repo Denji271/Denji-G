@@ -1,4 +1,4 @@
-// Platformer — Co-op Climb, Platform Race and Brawl share this page.
+// Platformer — Co-op Climb, Platform Race, Brawl and Tag share this page.
 // Everybody moves their own character and tells the others where it is (30 times a second).
 // The host decides the shared things: switches and doors, who carries the key, finishing order, knock-outs.
 (function () {
@@ -9,6 +9,7 @@
   const VW = 960;
   const VH = 544;
   const RACE_GRACE = 30000; // how long the others get after the first finish
+  const TAG_SAFE = 1500; // after a tag, nobody can be tagged straight back
   const MAPS_KEY = "pf:maps";
 
   const MODES = {
@@ -30,8 +31,16 @@
       min: 1,
       controls: "<kbd>←</kbd> <kbd>→</kbd> move · <kbd>↑</kbd>/<kbd>Space</kbd> jump · <kbd>J</kbd>/<kbd>X</kbd> hit · <kbd>Esc</kbd> menu",
     },
+    tag: {
+      title: "Tag",
+      blurb: "Whoever is it has to touch somebody else to pass it on. The least time spent as it wins. 2–4 players.",
+      min: 2,
+      controls: "<kbd>←</kbd> <kbd>→</kbd> move · <kbd>↑</kbd>/<kbd>Space</kbd> jump · <kbd>↓</kbd> drop through · <kbd>Esc</kbd> menu",
+    },
   };
   const urlMode = MODES[WG.params().get("mode")] ? WG.params().get("mode") : "coop";
+  // Tag is played on the brawl arenas
+  const levelMode = (m) => (m === "tag" ? "brawl" : m);
 
   const view = ARC.view($("game"), VW, VH);
 
@@ -61,7 +70,7 @@
   }
 
   function levelOptions(values) {
-    const m = values.mode || urlMode;
+    const m = levelMode(values.mode || urlMode);
     const builtIn = PLATFORM_LEVELS[m];
     const brawl = m === "brawl";
     const out = [
@@ -77,13 +86,13 @@
   }
 
   function numberOptions(values) {
-    const word = values.mode === "brawl" ? "Arena " : "Level ";
+    const word = levelMode(values.mode) === "brawl" ? "Arena " : "Level ";
     return Array.from({ length: PFGEN.LEVELS }, (_, i) => ({ value: i + 1, label: word + (i + 1) }));
   }
 
   // Generated levels are only made when their turn comes (see startLevel).
   function playlist(m, v) {
-    const builtIn = PLATFORM_LEVELS[m];
+    const builtIn = PLATFORM_LEVELS[levelMode(m)];
     const count = m === "brawl" ? 1 : v.count || 5;
     if (v.level === "num") {
       const list = [];
@@ -95,16 +104,22 @@
       return Array.from({ length: count }, (_, i) => ({ random: true, d: count > 1 ? 0.2 + (0.6 * i) / (count - 1) : undefined }));
     }
     if (v.level === "all") return builtIn.slice();
-    if (/^b\d+$/.test(v.level)) return [builtIn[Number(v.level.slice(1))] || builtIn[0]];
-    const mine = myMaps().find((x) => "m" + x.id === v.level);
-    return [mine ? { name: mine.name, rows: mine.rows } : builtIn[0]];
+    let one;
+    if (/^b\d+$/.test(v.level)) {
+      one = builtIn[Number(v.level.slice(1))] || builtIn[0];
+    } else {
+      const mine = myMaps().find((x) => "m" + x.id === v.level);
+      one = mine ? { name: mine.name, rows: mine.rows } : builtIn[0];
+    }
+    // a single tag arena is played for several rounds
+    return m === "tag" ? Array.from({ length: count }, () => one) : [one];
   }
 
   // The Map Maker's "Host a room with it" arrives with ?map=<id>
   function firstLevel() {
     const id = WG.params().get("map");
-    if (id && myMaps().some((x) => x.id === id && x.mode === urlMode)) return "m" + id;
-    return urlMode === "brawl" ? "rnd" : "num";
+    if (id && myMaps().some((x) => x.id === id && x.mode === levelMode(urlMode))) return "m" + id;
+    return levelMode(urlMode) === "brawl" ? "rnd" : "num";
   }
 
   function setMode(m) {
@@ -130,6 +145,7 @@
           { value: "coop", label: "Co-op Climb" },
           { value: "race", label: "Platform Race" },
           { value: "brawl", label: "Brawl" },
+          { value: "tag", label: "Tag" },
         ],
       },
       { key: "level", label: "Levels", value: firstLevel(), options: levelOptions },
@@ -138,12 +154,19 @@
         key: "count",
         label: "How many",
         value: 5,
-        show: (v) => v.mode !== "brawl" && (v.level === "num" || v.level === "rnd"),
+        show: (v) => v.mode === "tag" || (v.mode !== "brawl" && (v.level === "num" || v.level === "rnd")),
+        options: (v) =>
+          [3, 5, 10, 20].map((n) => ({ value: n, label: n + (v.mode === "tag" ? " rounds" : " levels") })),
+      },
+      {
+        key: "time",
+        label: "Round length",
+        value: 60,
+        show: (v) => v.mode === "tag",
         options: [
-          { value: 3, label: "3 levels" },
-          { value: 5, label: "5 levels" },
-          { value: 10, label: "10 levels" },
-          { value: 20, label: "20 levels" },
+          { value: 45, label: "45 seconds" },
+          { value: 60, label: "1 minute" },
+          { value: 90, label: "1½ minutes" },
         ],
       },
       {
@@ -198,10 +221,16 @@
       room.on("pf.exit", (d, from) => hostEnter(from, false));
       room.on("pf.fin", (d, from) => hostFinish(from, d));
       room.on("pf.ko", (d, from) => hostKO(from, d));
+      room.on("pf.tag", (d, from) => hostTag(from, d));
       room.on("join", (p) => {
         if (!match) return;
         match.scores[p.id] = match.scores[p.id] || 0;
         if (match.mode === "brawl") match.stocks[p.id] = 0; // watches until the next match
+        if (match.mode === "tag" && match.itTime[p.id] === undefined) {
+          // a late arrival starts with the average so far, not with a clean sheet
+          const times = Object.values(match.itTime);
+          match.itTime[p.id] = times.length ? times.reduce((a, b) => a + b, 0) / times.length : 0;
+        }
         room.to(p.id, "pf.level", levelPayload(p.id));
         room.to(p.id, "pf.w", worldPayload());
       });
@@ -213,6 +242,10 @@
           match.stocks[p.id] = 0;
           match.outOrder.push(p.id);
           checkBrawlEnd();
+        }
+        if (match.mode === "tag" && match.it === p.id && room.players.length) {
+          match.it = WG.pick(room.players).id;
+          match.tagSafe = performance.now() + TAG_SAFE;
         }
         sendWorld();
       });
@@ -236,19 +269,24 @@
       list: playlist(values.mode, values),
       index: 0,
       lives: values.lives || 3,
+      time: values.time || 60,
       scores: {},
+      itTime: {}, // tag: milliseconds each player has spent as "it"
       started: room.players.length,
     };
-    room.players.forEach((p) => (match.scores[p.id] = 0));
+    room.players.forEach((p) => {
+      match.scores[p.id] = 0;
+      match.itTime[p.id] = 0;
+    });
     startLevel();
   }
 
   function startLevel() {
     let lv = match.list[match.index];
-    if (lv.num) lv = PFGEN.numbered(match.mode, lv.num);
-    else if (lv.random) lv = PFGEN.random(match.mode, lv.d);
+    if (lv.num) lv = PFGEN.numbered(levelMode(match.mode), lv.num);
+    else if (lv.random) lv = PFGEN.random(levelMode(match.mode), lv.d);
     match.level = { name: lv.name, rows: lv.rows };
-    match.map = PF.parse({ name: lv.name, rows: lv.rows, mode: match.mode });
+    match.map = PF.parse({ name: lv.name, rows: lv.rows, mode: levelMode(match.mode) });
     match.open = {};
     match.entered = new Set();
     match.finished = new Map();
@@ -261,6 +299,16 @@
     const k = match.map.keys[0];
     match.key = k ? { home: { x: k.x, y: k.y }, x: k.x, y: k.y, carrier: null } : null;
     match.unlocked = !match.key;
+    if (match.mode === "tag") {
+      // it starts with somebody random; the clock starts after the 3-second countdown
+      const now = performance.now();
+      match.it = WG.pick(room.players).id;
+      match.tagSafe = 0;
+      match.roundStart = now + 3000;
+      match.roundEnd = match.roundStart + match.time * 1000;
+      match.lastTick = now;
+      match.lastSync = now;
+    }
     room.players.forEach((p) => room.to(p.id, "pf.level", levelPayload(p.id)));
     sendWorld();
   }
@@ -285,7 +333,17 @@
       entered: [...match.entered],
       finished: [...match.finished.keys()],
       endsIn: match.firstFinish ? Math.max(0, match.firstFinish + RACE_GRACE - performance.now()) : 0,
+      it: match.mode === "tag" ? match.it : null,
+      itTime: match.mode === "tag" ? roundTimes(match.itTime) : null,
+      tagEndsIn: match.mode === "tag" ? Math.max(0, match.roundEnd - performance.now()) : 0,
+      safeFor: match.mode === "tag" ? Math.max(0, match.tagSafe - performance.now()) : 0,
     };
+  }
+
+  function roundTimes(times) {
+    const out = {};
+    Object.keys(times).forEach((id) => (out[id] = Math.round(times[id] / 100) * 100));
+    return out;
   }
 
   function sendWorld() {
@@ -336,6 +394,16 @@
     if (match.stocks[id] > 0 && left === 0) match.outOrder.push(id);
     match.stocks[id] = left;
     checkBrawlEnd();
+  }
+
+  function hostTag(id, d) {
+    if (!match || match.mode !== "tag" || match.over || match.it !== id) return;
+    const to = d && d.to;
+    const now = performance.now();
+    if (to === id || !room.player(to) || now < match.tagSafe || now < match.roundStart) return;
+    match.it = to;
+    match.tagSafe = now + TAG_SAFE;
+    sendWorld();
   }
 
   function checkBrawlEnd() {
@@ -408,6 +476,26 @@
         renderHud();
         setTimeout(nextLevel, 3400);
       }
+    } else if (match.mode === "tag") {
+      const now = performance.now();
+      if (now > match.roundStart && match.itTime[match.it] !== undefined) {
+        match.itTime[match.it] += now - Math.max(match.lastTick, match.roundStart);
+      }
+      match.lastTick = now;
+      if (now >= match.roundEnd) {
+        match.over = true;
+        const it = room.player(match.it);
+        const title = it ? "Time's up — " + it.name + " was it!" : "Time's up!";
+        sendWorld();
+        room.send("pf.round", { title, scores: match.scores });
+        phase = "done";
+        ARC.banner(title, 3000);
+        setTimeout(nextLevel, 3400);
+      } else if (now - match.lastSync > 1000) {
+        // keeps everybody's clocks and "time as it" in step
+        match.lastSync = now;
+        sendWorld();
+      }
     }
   }
 
@@ -419,6 +507,16 @@
       return;
     }
     // the playlist is done
+    if (match.mode === "tag") {
+      const ranked = room.players
+        .map((p) => ({ p, t: match.itTime[p.id] || 0 }))
+        .sort((a, b) => a.t - b.t)
+        .map(({ p, t }) => ({ name: p.name, color: p.color, value: (t / 1000).toFixed(1) + " s", note: "time as it" }));
+      match = null;
+      phase = "idle";
+      LOBBY.results(ranked, ranked.length ? ranked[0].name + " wins!" : "Game over");
+      return;
+    }
     const rows = room.players
       .map((p) => ({ p, s: match.scores[p.id] || 0 }))
       .sort((a, b) => b.s - a.s)
@@ -438,10 +536,21 @@
 
   function onLevel(d) {
     setMode(d.mode);
-    map = PF.parse({ name: d.level.name, rows: d.level.rows, mode: d.mode });
+    map = PF.parse({ name: d.level.name, rows: d.level.rows, mode: levelMode(d.mode) });
     view.resize(Math.min(VW, map.pw), Math.min(VH, map.ph));
     others.clear();
-    world = { open: {}, unlocked: true, key: null, entered: [], finished: [], flagsHit: new Set() };
+    world = {
+      open: {},
+      unlocked: true,
+      key: null,
+      entered: [],
+      finished: [],
+      flagsHit: new Set(),
+      it: null,
+      itTime: {},
+      tagEnds: 0,
+      safeUntil: 0,
+    };
     info = { index: d.index, count: d.count, name: map.name, scores: d.scores || {}, lives: d.lives };
     raceEnds = 0;
 
@@ -462,6 +571,7 @@
       hits: new Set(),
       askedGrab: 0,
       askedUnlock: 0,
+      askedTag: 0,
     };
     if (d.mode === "coop") {
       phase = "play";
@@ -481,6 +591,18 @@
     world.entered = d.entered || [];
     world.finished = d.finished || [];
     if (d.endsIn && !raceEnds) raceEnds = performance.now() + d.endsIn;
+    if (d.it !== undefined && d.it !== null) {
+      const now = performance.now();
+      if (world.it && d.it !== world.it && room) {
+        const p = room.player(d.it);
+        if (d.it === room.myId) ARC.banner("You're it!", 1200);
+        else if (p) WG.toast(p.name + " is it!", 1200);
+      }
+      world.it = d.it;
+      world.itTime = d.itTime || {};
+      world.tagEnds = now + d.tagEndsIn;
+      world.safeUntil = now + (d.safeFor || 0);
+    }
     renderHud();
   }
 
@@ -593,7 +715,11 @@
     others.forEach((o) => {
       if (!(o.flags & 1)) solidOthers.push(o.box);
     });
-    const ev = PF.step(me, input, map, world, solidOthers, dt, { shove: mode === "race", bounds: mode === "brawl" });
+    const ev = PF.step(me, input, map, world, solidOthers, dt, {
+      shove: mode === "race",
+      bounds: levelMode(mode) === "brawl",
+      run: mode === "tag" && world.it === room.myId ? 1.1 : 1,
+    });
     if (ev.died) {
       die();
       return;
@@ -601,7 +727,23 @@
 
     if (mode === "coop") coopRules();
     else if (mode === "race") raceRules();
+    else if (mode === "tag") tagRules();
     else brawlRules();
+  }
+
+  // Whoever is it tags the first player they touch; the host has the final word.
+  function tagRules() {
+    const now = performance.now();
+    if (world.it !== room.myId || now < world.safeUntil || now - st.askedTag < 250) return;
+    for (const [id, o] of others) {
+      if (o.flags & 1) continue;
+      // bodies are solid, so "touching" means within a couple of pixels
+      const near = { x: o.box.x - 3, y: o.box.y - 3, w: PF.PW + 6, h: PF.PH + 6 };
+      if (!PF.overlap(me, near)) continue;
+      st.askedTag = now;
+      room.to(room.hostId, "pf.tag", { to: id });
+      return;
+    }
   }
 
   function keyBox() {
@@ -681,7 +823,7 @@
 
   function respawn() {
     const spot =
-      mode === "brawl" ? map.spawns[Math.floor(Math.random() * map.spawns.length)] : spawnPoint;
+      levelMode(mode) === "brawl" ? map.spawns[Math.floor(Math.random() * map.spawns.length)] : spawnPoint;
     Object.assign(me, PF.makePlayer(spot));
     me.px = me.x; // no blending from where I fell to the spawn point
     me.py = me.y;
@@ -755,9 +897,10 @@
       const p = room && room.player(id);
       if (!p) return;
       const blink = o.flags & 4 && Math.floor(now / 100) % 2;
+      if (mode === "tag" && world.it === id) drawIt(ctx, o, now);
       PF.drawPlayer(ctx, o, {
         color: NET.color(p.color),
-        label: mode === "brawl" ? p.name + " " + (o.dmg || 0) + "%" : p.name,
+        label: mode === "brawl" ? p.name + " " + (o.dmg || 0) + "%" : mode === "tag" && world.it === id ? "IT! " + p.name : p.name,
         alpha: blink ? 0.35 : 1,
         attack: o.flags & 2,
         key: k && k.carrier === id,
@@ -768,9 +911,10 @@
     if (me && st && !hidden()) {
       const my = room && room.player(room.myId);
       const blink = st.invuln > 0 && Math.floor(now / 100) % 2;
+      if (mode === "tag" && world.it === room.myId) drawIt(ctx, mine, now);
       PF.drawPlayer(ctx, mine, {
         color: NET.color(my ? my.color : 0),
-        label: mode === "brawl" ? Math.round(st.dmg) + "%" : "",
+        label: mode === "brawl" ? Math.round(st.dmg) + "%" : mode === "tag" && world.it === room.myId ? "IT!" : "",
         alpha: blink ? 0.35 : 1,
         attack: st.attack > 0,
         key: k && k.carrier === room.myId,
@@ -803,8 +947,29 @@
       draw.lastCount = -1;
     }
     if (mode === "race" && phase === "play") drawClock(ctx, now);
+    if (mode === "tag" && phase !== "done" && world.it) drawTagClock(ctx, now);
     if (st && st.entered) overlayText(ctx, "You're in! Waiting for the others… (↓ to come back out)");
     if (st && st.out && mode === "brawl" && phase === "play") overlayText(ctx, "You're out — watching the others");
+  }
+
+  // A pulsing ring around whoever is it.
+  function drawIt(ctx, p, now) {
+    const pulse = 0.5 + 0.5 * Math.sin(now / 120);
+    ctx.save();
+    ctx.strokeStyle = "#f0c419";
+    ctx.lineWidth = 2 + pulse * 2;
+    ctx.globalAlpha = 0.5 + pulse * 0.5;
+    ctx.beginPath();
+    ctx.arc(p.x + PF.PW / 2, p.y + PF.PH / 2, 22 + pulse * 3, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawTagClock(ctx, now) {
+    const left = Math.max(0, Math.ceil((world.tagEnds - now) / 1000));
+    const it = room && room.player(world.it);
+    const who = world.it === room.myId ? "You're it — tag somebody!" : it ? it.name + " is it — run!" : "";
+    overlayText(ctx, who + "  ·  " + left + " s", 22);
   }
 
   function drawClock(ctx, now) {
@@ -841,6 +1006,8 @@
         value = world.entered.includes(p.id) ? "✓ in" : "";
       } else if (mode === "race") {
         value = (info.scores[p.id] || 0) + (world.finished.includes(p.id) ? " ✓" : "");
+      } else if (mode === "tag") {
+        value = (world.it === p.id ? "IT · " : "") + Math.round((world.itTime[p.id] || 0) / 1000) + " s";
       } else {
         const stocks = mine ? (st ? st.stocks : 0) : o ? o.stocks : info.lives;
         value = "♥".repeat(Math.max(0, stocks || 0));

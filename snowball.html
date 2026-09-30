@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Snowball Fight</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%236fa8dc'/%3E%3Ccircle cx='50' cy='52' r='26' fill='white'/%3E%3Ccircle cx='42' cy='44' r='6' fill='%23dbe9f7'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/arcade.css">
+</head>
+<body class="arcade">
+  <header class="topbar">
+    <a class="icon-btn" href="index.html" aria-label="Home" title="Home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+    </a>
+    <h1>Snowball Fight<small id="subtitle"></small></h1>
+    <button class="icon-btn" type="button" data-open="helpDlg" aria-label="How to play" title="How to play"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.2 9.2a2.9 2.9 0 1 1 4.1 2.6c-.9.4-1.3 1-1.3 2v.4"/><circle cx="12" cy="17.4" r=".7" fill="currentColor"/></svg></button>
+  </header>
+
+  <main class="stage">
+    <div class="hud" id="hud"></div>
+    <div class="canvas-wrap"><canvas id="game" class="aim"></canvas></div>
+    <p class="controls-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · <b>click</b> where to throw (or <kbd>Space</kbd>) · <b>drag</b> to turn the camera (or <kbd>Q</kbd> <kbd>E</kbd>), wheel to zoom · hold <kbd>R</kbd> to scoop snow · <kbd>Esc</kbd> menu</p>
+    <div id="lobby"></div>
+  </main>
+
+  <div id="toasts" aria-live="polite"></div>
+
+  <dialog id="helpDlg">
+    <button class="icon-btn dlg-close" type="button" data-close aria-label="Close">✕</button>
+    <h2>How to play</h2>
+    <ul class="dlg-list">
+      <li>Walk with <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or the arrows. Click on the snow and your snowball flies there in an arc — lead your target! <kbd>Space</kbd> throws straight ahead.</li>
+      <li>Drag with the mouse to turn the camera (or <kbd>Q</kbd> <kbd>E</kbd>) and scroll to zoom — a click without dragging throws. <kbd>W</kbd> always walks the way the camera looks.</li>
+      <li>You carry up to five snowballs. Stand still and hold <kbd>R</kbd> to scoop up more.</li>
+      <li>Every hit is a point. The third hit freezes a player solid for a few seconds and is worth two extra points.</li>
+      <li>Snow forts and trees stop snowballs — hide behind them. The most points when the time runs out wins.</li>
+    </ul>
+  </dialog>
+
+  <script src="js/common.js"></script>
+  <script src="js/net.js"></script>
+  <script src="js/arcade.js"></script>
+  <script src="js/lobby.js"></script>
+  <script src="js/three-kit.js"></script>
+  <script src="js/snowball.js"></script>
+</body>
+</html>
